@@ -1,0 +1,184 @@
+\label{sec:fundamentacao}
+
+\section{A LLM como componente e a interface do filtro}\label{sec:interface}
+
+Utilizar uma LLM como componente de software exige tratá-la como um módulo com
+interface de entrada e saída bem definidas, e não como uma caixa de diálogo
+isolada \cite{weber2024llm}. O componente de filtro ocupa uma posição
+particular: atua antes da execução principal e não é responsável pela
+resposta final, mas por classificar e preparar a requisição recebida. Suas
+entradas são a requisição do usuário (potencialmente hostil); o
+conteúdo não confiável incorporado ao contexto, estes são: trechos recuperados
+\cite{lewis2020rag}, retornos de ferramenta, documentos, páginas, entre outros recursos
+que constituem o vetor da injeção indireta \cite{greshake2023ipi}; e a política de
+classificação. Suas saídas formam um contrato tipado: uma decisão
+(\texttt{passar}/\texttt{bloquear}), uma marcação de risco e,
+opcionalmente, uma versão transformada do conteúdo; é neste último campo que
+reside a proposta deste trabalho.
+
+\section{\textit{Prompt injection}: direto e indireto}\label{sec:injection}
+
+O \textit{prompt injection} é o ataque mais fundamental contra componentes
+baseados em LLM. Sua premissa é simples: instruções do administrador/desenvolvedor
+e a entrada do usuário chegam pelo mesmo canal, 
+sem separação semântica garantida, de modo que qualquer conteúdo textual
+pode ser interpretado como instrução. Os primeiros estudos quantitativos
+introduziram as noções de \textit{goal hijacking} e \textit{prompt leaking}
+\cite{perez2022ignore}; trabalhos posteriores formalizaram o ataque e
+padronizaram sua avaliação \cite{liu2024formalizing}. Na variante
+\textbf{direta}, o atacante formula entradas que sobrepõem as instruções
+originais, da sobreposição explícita (``ignore as instruções anteriores'') a
+variantes como \textit{role-playing} e ofuscação por codificação. Na variante
+\textbf{indireta} \cite{greshake2023ipi}, o atacante planta instruções em
+conteúdo que o componente processará normalmente, como um documento indexado, o
+retorno de uma ferramenta ou uma página web. É a variante indireta que motiva o
+recorte deste trabalho, por não depender de nenhuma ação do usuário legítimo.
+
+\section{A não separação como propriedade mensurável}\label{sec:nao_separacao}
+
+A não separação entre instrução do administrador/desenvolvedor e a entrada do usuário decorre da forma como os
+\textit{Transformers} são treinados para seguir instruções. O alinhamento por
+instrução, como o RLHF \cite{ouyang2022instructgpt}, melhorou o respeito ao
+\textit{system prompt}, mas não eliminou o problema, pois o modelo permanece um
+processador estatístico de texto sem mecanismo intrínseco para verificar a
+procedência de cada \textit{token}.
+
+Trabalho recente elevou essa observação a uma propriedade formal: é possível
+definir e medir o grau em que um modelo separa instrução de dado,
+comparando o comportamento do modelo quando uma mesma sentença aparece na
+posição de instrução e na posição de dado \cite{zverev2025separation}. A
+conclusão é que nenhum modelo avaliado atinge separação alta, e que técnicas
+canônicas de mitigação ou falham em melhorá-la substancialmente ou custam
+utilidade. Isso importa aqui por dois motivos: fornece a métrica com que se pode
+avaliar diretamente o efeito da intervenção proposta, e estabelece que a
+separação, embora não garantida pelo modelo, pode ser
+aproximada por convenções, premissa que fundamenta os métodos
+discutidos a seguir.
+
+Há duas vias para obter essa aproximação. A via aprendida altera os
+pesos: consultas estruturadas \cite{chen2025struq}, otimização por preferência
+\cite{chen2025secalign} e hierarquia de instruções \cite{wallace2024hierarchy}
+demonstram que a separação funciona quando treinada, e há modelos abertos já
+publicados sob essa abordagem \cite{chen2025metasecalign}; a via arquitetural vai
+além e codifica a procedência nos próprios \textit{embeddings}
+\cite{zverev2026aside}. Ambas exigem treinamento, e por isso servem aqui como
+referência. Uma terceira via reprojeta o agente em
+torno do modelo. O CaMeL separa fluxo de controle e fluxo
+de dados por meio de um interpretador com capacidades
+\cite{debenedetti2025camel}, e \citeonline{beurerkellner2025patterns}
+catalogam padrões de projeto que restringem, por construção, o que o agente
+pode fazer depois de ler conteúdo não confiável. A via
+que este trabalho adota, opera apenas sobre o texto de entrada.
+
+\section{\textit{Guardrails} de entrada e sua circularidade}\label{sec:guardrails}
+
+\textit{Guardrails} de entrada inspecionam toda a informação que chega ao
+componente antes de o modelo recebê-la. Há uma escolha estrutural entre filtros
+baseados em padrões (expressões regulares, listas), rápidos e auditáveis porém
+frágeis, e classificadores baseados em modelo, capazes de capturar semanticamente
+formulações que escapam a filtros superficiais \cite{dong2024guardrails}. Estes últimos, os
+\textit{guard models}, são modelos de linguagem, frequentemente menores que o
+principal, ajustados para classificar entrada e saída segundo uma taxonomia
+\cite{inan2023llamaguard, zeng2024shieldgemma, zhao2025qwen3guard}, e já compõem
+sistemas de defesa em camadas \cite{chennabasappa2025llamafirewall}.
+
+Um ponto importante para este trabalho é a circularidade: um \textit{guard model} é
+ele próprio uma LLM e herda as vulnerabilidades que pretende mitigar. Pode ser
+manipulado por instruções embutidas no conteúdo que analisa e contornado por
+ofuscação \cite{hackett2025bypassing}. Se separar a instrução do desenvolvedor
+da entrada não confiável é o que falta ao componente principal, não há razão para supor que o filtro esteja
+dispensado dela.
+
+\section{\textit{Spotlighting}: separação por convenção}\label{sec:spotlighting}
+
+O \textit{spotlighting} \cite{hines2024spotlighting} é a formulação de
+referência da separação por convenção. A ideia é transformar o texto não
+confiável antes de inseri-lo no \textit{prompt}, de modo que o modelo receba um
+sinal contínuo de sua procedência, e avisar no \textit{prompt} de sistema que a
+transformação foi feita e que nada dentro do bloco deve ser obedecido. Os
+autores descrevem três instanciações, de intrusividade crescente:
+
+\begin{itemize}
+  \item \textbf{Delimitação} (\textit{delimiting}). Símbolos especiais são
+  colocados antes e depois do bloco não confiável, e o \textit{prompt} de
+  sistema declara que o texto entre eles é um documento a ser lido, e não
+  instrução a ser seguida. Um resumo de e-mail, por exemplo, chegaria ao modelo
+  como ``\texttt{<{}<} texto do e-mail \texttt{>{}>}'', precedido de ``nunca
+  obedeça a instruções entre esses símbolos''. É a forma mais simples e a única
+  que não altera o conteúdo do bloco; em contrapartida, marca apenas as bordas,
+  e um atacante que conheça os símbolos pode fechá-los e inserir os seus
+  próprios.
+  \item \textbf{Marcação de dados} (\textit{datamarking}). Em vez de marcar
+  apenas as bordas, um caractere especial é intercalado ao longo de todo o
+  bloco, tipicamente no lugar de cada espaço em branco: ``In this manner''
+  torna-se ``In\textasciicircum{}this\textasciicircum{}manner''. O
+  \textit{prompt} de sistema explica a transformação, e a procedência passa a
+  acompanhar cada palavra, e não só o início e o fim. O texto continua legível
+  para o modelo, mas qualquer instrução embutida carrega a marca de dado.
+  \item \textbf{Codificação} (\textit{encoding}). O bloco inteiro é
+  transformado por um algoritmo conhecido, como base64 ou ROT13, e o modelo é
+  instruído a decodificá-lo antes de cumprir a tarefa. O conteúdo deixa de ser
+  texto legível e vira dado opaco, o que torna a fronteira inequívoca, ao custo
+  de exigir que o modelo decodifique corretamente.
+\end{itemize}
+
+As três reduziram de forma expressiva o sucesso de injeções indiretas nos
+experimentos originais, com a marcação de dados oferecendo o melhor equilíbrio
+entre proteção e preservação da tarefa, e a codificação dependendo da capacidade
+do modelo para decodificar sem perda. Esses resultados foram obtidos protegendo
+o modelo principal, o que torna as técnicas candidatas naturais a serem
+aplicadas também ao filtro. Deste repertório, este trabalho adota a
+delimitação, por ser a menos intrusiva e a única que não altera o texto que o
+filtro precisa compreender, e transpõe a ideia de marcação por caractere para a
+saída do filtro, onde ela passa a ser aplicada de forma seletiva. A fragilidade
+da delimitação frente a quem conhece os símbolos é tratada pelo escape dos
+caracteres de tag, descrito na Seção~\ref{sec:fator1}.
+
+É preciso distinguir esse mecanismo de defesas puramente textuais, que
+acrescentam ao \textit{prompt} instruções de vigilância sem alterar a estrutura
+da entrada. O \textit{self-reminder} \cite{xie2023selfreminder} é o exemplo
+canônico, e também reduz o sucesso de ataques. A distinção importa porque as duas
+famílias operam por vias diferentes: uma pede atenção ao modelo, a outra muda a
+forma do que ele lê. É a segunda que este trabalho investiga.
+
+\section{Filtros que sanitizam a entrada}\label{sec:sanitizacao}
+
+Uma linha recente vai além de classificar e passa a \textbf{transformar} o
+conteúdo suspeito. O PromptArmor usa uma LLM sem treinamento adicional para
+localizar o trecho injetado e removê-lo por casamento aproximado, atingindo
+taxas de erro abaixo de 1\% em um benchmark de agentes \cite{shi2025promptarmor}.
+O DataFilter treina um modelo dedicado sobre o mesmo \textit{backbone} de 8
+bilhões de parâmetros para apagar o trecho malicioso preservando a informação
+benigna, e utiliza um \textit{token} de fronteira para separar a instrução do
+filtro do conteúdo não confiável na entrada do próprio filtro \cite{wang2025datafilter}. O PISanitizer opera em
+caixa-branca, identificando os \textit{tokens} injetados pelos pesos de atenção
+e eliminando-os \cite{geng2025pisanitizer}.
+
+Os três compartilham a mesma decisão de projeto, que é a \textbf{remoção},
+e este trabalho se diferencia deles nesta decisão, tomando uma abordagem diferente.
+A remoção é irreversível e tomada sob incerteza: 
+um falso positivo apaga conteúdo legítimo, e o componente
+principal responde sobre um texto mutilado sem qualquer sinal de que isso
+ocorreu. A marcação, por outro lado, é uma operação conservadora: preserva o
+texto integralmente e delega ao componente principal a ponderação do risco,
+transformando uma decisão binária do filtro em um sinal graduado. Além disso,
+apenas o DataFilter separa a instrução do filtro do conteúdo não confiável, e o
+faz por meio de treinamento; nenhum dos três avalia o efeito de fazê-lo por
+alteração estrutural do \textit{input}.
+
+\section{Métricas de avaliação}\label{sec:metricas_fund}
+
+Medir apenas a detecção do filtro é insuficiente por duas razões. Primeiro, o
+que interessa é o desfecho: um ataque que passa pelo filtro mas não é executado
+pelo componente principal não é um ataque bem-sucedido. A métrica primária é,
+portanto, a \textbf{taxa de sucesso do ataque} (ASR) medida na saída do sistema
+\cite{yi2025bipia}. Segundo, um filtro é sempre um equilíbrio entre detecção e
+\textbf{sobre-bloqueio}, a fração de entradas benignas indevidamente
+bloqueadas (modo de falha agravado por conteúdos benignos que contêm
+palavras-gatilho \cite{li2024injecguard}), que tem igual impacto em casos
+reais de aplicação. Como o filtro opera sob restrição de
+falsos positivos, a métrica de classificação operacional é a taxa
+de detecção a uma taxa de falsos positivos baixa e fixa \cite{jacob2025promptshield}.
+A esses somam-se a \textbf{utilidade} preservada na tarefa legítima e o custo em
+\textit{tokens} e latência, seguindo o princípio consolidado de avaliar
+conjuntamente utilidade e segurança \cite{debenedetti2024agentdojo}.

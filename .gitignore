@@ -1,0 +1,41 @@
+/.claude/
+/deprecated/
+/data/
+/results/
+
+# Artefatos de compilação LaTeX. O latexmkrc os manda para latex/build/;
+# as extensões ficam listadas para o caso de alguém rodar pdflatex direto.
+latex/build/
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.lof
+*.lot
+*.los
+*.glo
+*.brf
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Ambiente local
+experiments/env.yaml
+.env
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,33 @@
+O uso de LLMs como componentes fixos de software expõe uma superfície de ataque
+linguística cuja causa-raiz é a indistinção nativa entre inputs maliciosos e não maliciosos sobre a
+entrada do modelo, da qual decorre o \textit{prompt injection}. A defesa,
+consolidada cientificamente e comercialmente em implementações industriais,
+interpõe um \textit{guardrail} de entrada antes da execução
+principal. Esse filtro, porém, é também uma LLM que recebe instrução e dado
+pelo mesmo canal, e herda a vulnerabilidade que existe para mitigar. Este
+trabalho mede o que se ganha ao aplicar ao próprio filtro a separação entre
+canal de instrução e canal de dado que a literatura propõe para o modelo
+principal, e ao fazer com que o filtro preserve e marque o trecho suspeito em
+vez de removê-lo, repassando a anotação ao componente que executará a tarefa. Essencialmente,
+o objetivo é melhorar a segurança de sistemas que utilizem LLM sem recorrer a um modelo \textit{fine-tunado}, mas
+adicionando técnicas de segurança que modificam o \textit{input}. O
+desenho experimental é $2 \times 2$: delimitação em XML na entrada do
+filtro e marcação seletiva na sua saída, totalizando quatro condições, além
+de um teste sem filtro como referência inicial e de um filtro
+\textit{fine-tunado} da mesma família, avaliado nas mesmas quatro condições,
+como ponto de comparação. A avaliação emprega
+dois modelos abertos sem \textit{fine-tuning}, cada um instanciando o sistema
+inteiro, sobre três \textit{benchmarks} públicos: BIPIA, SEP e NotInject. São
+42 execuções por repetição, repetidas dez vezes: 420 execuções e 131.460
+registros. O desfecho de cada item é a média das dez repetições, medido na
+saída do componente principal, em taxa de sucesso do ataque, utilidade em
+tarefas benignas e sobre-bloqueio, com intervalos de confiança por
+\textit{bootstrap} pareado sobre os mesmos itens. A combinação dos dois fatores
+reduziu a taxa de sucesso do ataque no BIPIA em 0,084 para o Llama-3.1-8B e em
+0,139 para o gpt-oss-20b, ambas com intervalo de 95\% afastado do zero.
+Sobre o filtro \textit{fine-tunado} a mesma combinação reduziu 0,139, o que
+mostra que o ganho não depende de o filtro ser um modelo de uso geral.
+Marcar em vez de remover mostrou-se uma
+alternativa viável às defesas que removem, com proteção maior que a do modelo
+\textit{fine-tunado} da mesma família e com facilidade de implementação muito
+maior.

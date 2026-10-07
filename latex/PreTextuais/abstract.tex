@@ -1,0 +1,32 @@
+Using LLMs as fixed software components exposes a linguistic attack surface
+whose root cause is the native inability to distinguish malicious from
+non-malicious inputs at the model's input, from which \textit{prompt injection}
+follows. The defense, consolidated both scientifically and commercially in
+industrial deployments, places an input \textit{guardrail} before the main
+execution. That filter, however, is itself an LLM that receives instruction and
+data through the same channel, and inherits the very vulnerability it exists to
+mitigate. This work measures what is gained by applying to the filter itself
+the separation between instruction channel and data channel that the literature
+proposes for the main model, and by having the filter preserve and mark the
+suspicious span instead of removing it, forwarding the annotation to the
+component that will carry out the task. In essence, the goal is to improve the
+security of LLM-based systems without resorting to a \textit{fine-tuned} model,
+but by adding security techniques that modify the \textit{input}. The
+experimental design is $2 \times 2$: XML delimiting at the filter's input and
+selective marking at its output, totaling four conditions, plus a no-filter
+test as the initial reference and a \textit{fine-tuned} filter from the same
+family, evaluated under the same four conditions, as a point of comparison. The
+evaluation uses two open models
+without \textit{fine-tuning}, each one instantiating the whole system, over
+three public \textit{benchmarks}: BIPIA, SEP and NotInject. There are 42 runs
+per repetition, repeated ten times: 420 runs and 131,460 records. The outcome
+of each item is its mean over the ten repetitions, measured at the output of
+the main component, in attack success rate, utility on benign tasks and
+over-blocking, with paired \textit{bootstrap} confidence intervals over the
+same items. Combining both factors reduced the attack success rate on
+BIPIA by 0.084 for Llama-3.1-8B and by 0.139 for gpt-oss-20b, both with a 95\%
+interval away from zero. On the \textit{fine-tuned} filter the same
+combination reduced it by 0.139, showing that the gain does not depend on the
+filter being a general-purpose model. Marking rather than removing proved a
+viable alternative to removal-based defenses, with greater protection than the
+\textit{fine-tuned} model from the same family and far easier implementation.

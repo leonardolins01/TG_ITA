@@ -1,0 +1,21 @@
+# A execução dos modelos é feita por API (OpenRouter); não há mais dependência
+# de torch/transformers/accelerate nem de servidor local.
+
+# Núcleo
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4
+# Intervalo BCa dos efeitos fatoriais (analysis.buildEffects) e o quantil
+# normal do intervalo de Newcombe (metrics.pairedProportionCi)
+scipy>=1.11
+pyyaml>=6.0
+tqdm>=4.66
+
+# Figuras dos resultados (makeFigures.py); nada mais no projeto plota
+matplotlib>=3.8
+
+# Cliente HTTP da API
+requests>=2.31
+
+# Download do NotInject (HuggingFace); BIPIA e SEP vêm por git clone
+datasets>=2.18

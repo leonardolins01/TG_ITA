@@ -1,0 +1,58 @@
+% Capa e folha de rosto. No caso do TG, \maketitle gera quatro páginas:
+% capa, folha de rosto, ficha catalográfica (CIP) e folha de aprovação.
+\maketitle
+
+% Dedicatória
+\begin{itadedication}
+\input{PreTextuais/dedicatoria}
+\end{itadedication}
+
+% Agradecimentos
+\begin{itathanks}
+\input{PreTextuais/agradecimentos}
+\end{itathanks}
+
+% Epígrafe
+\thispagestyle{empty}
+\ifhyperref\pdfbookmark[0]{\nameepigraphe}{epigrafe}\fi
+\begin{flushright}
+\begin{spacing}{1}
+\mbox{}\vfill
+\input{PreTextuais/epigrafe}
+\end{spacing}
+\end{flushright}
+
+% Resumo. As palavras-chave ficam aqui, e não em resumo.tex, porque o mesmo
+% arquivo alimenta a Folha de Registro do Documento, onde elas não cabem.
+\begin{abstract}
+\noindent
+\input{PreTextuais/resumo}
+\keywords{\textit{Prompt injection}. \textit{Guardrails} de entrada. Separação
+entre instrução e dado. \textit{Spotlighting}. Segurança de LLM. Modelos
+abertos.}
+\end{abstract}
+
+% Abstract
+\begin{englishabstract}
+\noindent
+\input{PreTextuais/abstract}
+\englishkeywords{Prompt injection. Input guardrails. Instruction--data
+separation. Spotlighting. LLM security. Open models.}
+\end{englishabstract}
+
+% Lista de figuras
+\listoffigures
+
+% Lista de tabelas
+\listoftables
+
+% Lista de abreviaturas e siglas
+\listofabbreviations
+\input{PreTextuais/listaabreviaturas}
+
+% Lista de símbolos
+\listofsymbols
+\input{PreTextuais/listasimbolos}
+
+% Sumário
+\tableofcontents

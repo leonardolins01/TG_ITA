@@ -1,0 +1,174 @@
+\label{sec:resultados}
+
+Este capítulo apresenta as medições da bateria descrita na
+Seção~\ref{sec:analise}. Cada figura é uma grade de nove painéis. As linhas
+trazem os dois modelos abertos, que instanciam o sistema inteiro (filtro e
+componente principal), e o filtro fine-tunado da família gpt-oss, que ocupa só
+o papel de filtro. As colunas trazem os três benchmarks. No eixo horizontal de
+cada painel ficam as cinco configurações: sem filtro, \textit{prompt} simples,
+delimitação, marcação e a combinação das duas. O NotInject tem apenas itens
+benignos, então nele a taxa de sucesso do ataque não é definida e o painel
+correspondente fica vazio.
+
+Todo valor é a média das dez repetições da bateria, e toda haste vertical é o
+intervalo de confiança de 95\% descrito na Seção~\ref{sec:protocolo}. Nas
+figuras de valor absoluto, a haste mostra a incerteza de cada taxa; a barra
+sem haste é uma taxa em que menos de cinco itens variaram, quase constante, e
+sem intervalo pela regra da Seção~\ref{sec:protocolo}. Nas
+figuras de diferença, cada diferença é um ponto: se a haste não cruza o zero,
+a diferença não se explica pelo acaso; se cruza, falta evidência de efeito
+nesta amostra, o que não equivale a ausência de efeito. As medidas de
+validade e de custo operacional (saída inválida, resposta vazia, alcance da
+marcação, \textit{tokens} e tempo) descrevem o comportamento observado e não
+trazem intervalo.
+
+\section{Taxa de sucesso do ataque}\label{sec:res_asr}
+
+A Figura~\ref{fig:asr} apresenta a taxa de sucesso do ataque em valor absoluto.
+
+% [NÚCLEO]
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{asr}
+\caption{Taxa de sucesso do ataque por configuração. O painel do NotInject fica vazio porque o conjunto não tem itens atacados.}
+\label{fig:asr}
+\end{figure}
+
+A proteção total do \textit{guardrail} é a distância entre cada configuração e
+a barra sem filtro. O filtro fine-tunado protege menos que o modelo aberto da
+mesma família em todas as configurações; a Seção~\ref{sec:conc_guards} discute
+o motivo.
+
+A Figura~\ref{fig:delta-asr-simple} isola o efeito de separar o canal de
+instrução do canal de dado não confiável. Cada condição é comparada ao
+\textit{prompt} simples, com o mesmo filtro, os mesmos itens e o mesmo
+componente principal.
+
+% [NÚCLEO]
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{delta_asr_vs_simple}
+\caption{Diferença na taxa de sucesso do ataque de cada condição em relação ao \textit{prompt} simples. As hastes são intervalos de confiança de 95\% por \textit{bootstrap} BCa pareado sobre os itens.}
+\label{fig:delta-asr-simple}
+\end{figure}
+
+A Figura~\ref{fig:effects-asr} decompõe o mesmo resultado nos efeitos do
+desenho fatorial (Seção~\ref{sec:protocolo}): o efeito principal da
+delimitação, o da marcação e a interação entre os dois, cada um estimado com as
+quatro condições.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{effects_asr}
+\caption{Efeitos do desenho $2 \times 2$ sobre a taxa de sucesso do ataque. O efeito principal de um fator é a média das duas condições com o fator menos a média das duas sem ele; a interação é a diferença entre o ganho da marcação com e sem delimitação. As hastes são intervalos de confiança de 95\% por \textit{bootstrap} BCa sobre os itens.}
+\label{fig:effects-asr}
+\end{figure}
+
+\section{Custo da defesa}\label{sec:res_custo}
+
+Uma redução na taxa de sucesso do ataque só é ganho se não sacrificar a tarefa
+legítima. A Figura~\ref{fig:delta-utility} mostra a diferença de utilidade de
+cada condição em relação ao \textit{prompt} simples, com o mesmo intervalo
+pareado.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{delta_utility_vs_simple}
+\caption{Diferença de utilidade de cada condição em relação ao \textit{prompt} simples, com intervalos de confiança de 95\% por \textit{bootstrap} BCa pareado sobre os itens. Só o BIPIA publica resposta de referência; no SEP e no NotInject, a utilidade significa ``respondeu sem ter sido bloqueado'', e não ``respondeu corretamente''.}
+\label{fig:delta-utility}
+\end{figure}
+
+A Figura~\ref{fig:effects-utility} aplica a mesma decomposição fatorial à
+utilidade. Por usar as quatro condições, ela separa o custo de cada fator
+melhor que as comparações contra o \textit{prompt} simples.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{effects_utility}
+\caption{Efeitos do desenho $2 \times 2$ sobre a utilidade, definidos como na Figura~\ref{fig:effects-asr}, com intervalos de confiança de 95\% por \textit{bootstrap} BCa sobre os itens. Vale a ressalva da Figura~\ref{fig:delta-utility} sobre o significado da utilidade.}
+\label{fig:effects-utility}
+\end{figure}
+
+A Figura~\ref{fig:utility} mostra a utilidade em valor absoluto.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{utility}
+\caption{Utilidade: fração das tarefas legítimas cumpridas, com item bloqueado contando como fracasso. As duas barras sem haste, do Llama-3.1-8B sem filtro no SEP e no NotInject, valem exatamente 1,000, sem variação para um intervalo. Vale a ressalva da Figura~\ref{fig:delta-utility} sobre o significado da utilidade.}
+\label{fig:utility}
+\end{figure}
+
+A Figura~\ref{fig:overblock} mostra o sobre-bloqueio, a fração do conteúdo
+legítimo que o filtro bloqueou.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{over_block}
+\caption{Sobre-bloqueio: fração dos itens benignos que o filtro bloqueou. É a única métrica definida nos três benchmarks e o motivo de incluir o NotInject, composto de requisições legítimas com vocabulário sensível. Sem filtro não há decisão de bloqueio, e a barra correspondente é nula por construção. As barras sem haste do gpt-oss-20b e do gpt-oss-safeguard no BIPIA e no SEP somam de zero a quatro bloqueios em 1.500 decisões, poucos demais para um intervalo.}
+\label{fig:overblock}
+\end{figure}
+
+\section{Alcance da marcação seletiva}\label{sec:res_alcance}
+
+A marcação seletiva só age sobre os trechos que o filtro apontou. Sem trecho
+apontado, não há o que marcar, e a condição se reduz ao \textit{prompt}
+simples. A Figura~\ref{fig:marked} mede esse alcance.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{marked_rate}
+\caption{Alcance da marcação seletiva: fração dos itens liberados pelo filtro com ao menos um trecho marcado. É zero por construção nas condições que não marcam.}
+\label{fig:marked}
+\end{figure}
+
+\section{Saídas inválidas}\label{sec:res_validade}
+
+A Figura~\ref{fig:invalid} mostra a taxa de saída inválida do filtro.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{invalid_output}
+\caption{Taxa de saída inválida do filtro: fração das respostas que não seguiram o contrato de saída. Saída inválida conta como não bloqueio: o item segue para o componente principal e entra na medição.}
+\label{fig:invalid}
+\end{figure}
+
+A Figura~\ref{fig:empty} mostra o equivalente no componente principal: a
+fração dos itens liberados pelo filtro em que ele devolveu resposta vazia.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{empty_output}
+\caption{Resposta vazia do componente principal: fração dos itens liberados pelo filtro em que o componente não produziu resposta, quase sempre por esgotar o teto de 8.192 \textit{tokens} raciocinando. Resposta vazia conta como saída inválida, e não como bloqueio nem como sobre-bloqueio: não executa o ataque e não cumpre a tarefa.}
+\label{fig:empty}
+\end{figure}
+
+\section{Custo operacional}\label{sec:res_operacional}
+
+As Figuras~\ref{fig:tokens} e~\ref{fig:latency} mostram o custo em
+\textit{tokens} e o tempo de geração por item, somando os dois estágios.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{cost_tokens}
+\caption{\textit{Tokens} por item, somando os dois estágios. A diferença para o \textit{prompt} simples é a despesa da delimitação e da marcação, que acrescentam texto; a diferença para a configuração sem filtro é a despesa do filtro, que dobra o número de chamadas.}
+\label{fig:tokens}
+\end{figure}
+
+% [VALIDADE]
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{cost_latency}
+\caption{Tempo de geração por item, em segundos, somando os dois estágios. A barra é a mediana e o traço, o percentil 95. O tempo é o informado pelo provedor para cada chamada, e por isso não inclui fila, rede nem espera por limite de taxa. O mesmo modelo é servido por provedores com hardware diferente, escolhidos a cada chamada pela interface, e essa variação entra no tempo medido.}
+\label{fig:latency}
+\end{figure}
+
+\section{Tabelas completas}\label{sec:res_tabelas}
+
+As Tabelas~\ref{tab:resultados-bipia}, \ref{tab:resultados-sep}
+e~\ref{tab:resultados-notinject} reúnem todas as métricas de todas as
+configurações, uma por benchmark, com a explicação das colunas logo abaixo.
+Elas são geradas dos mesmos arquivos CSV que originam as figuras.
+
+\input{tables/resultados_bipia}
+\input{tables/resultados_sep}
+\input{tables/resultados_notinject}

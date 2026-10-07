@@ -1,0 +1,12 @@
+% Versão preliminar: o TG3 até as referências, sem apêndices e sem FRD.
+\def\TGpreliminar{}
+\makeatletter
+\@namedef{r@ape:exemplos}{{A}{}{}{}{}}
+\@namedef{r@ape:incerteza}{{B}{}{}{}{}}
+\@namedef{r@tab:ape_montagem}{{A.2}{}{}{}{}}
+\AddToHook{begindocument/end}{%
+  \expandafter\ifx\csname r@LastPage\endcsname\relax\else
+    \edef\NumPenultimaPagina{\expandafter\deixasosegundo\r@LastPage!}%
+  \fi}
+\makeatother
+\input{TG3}

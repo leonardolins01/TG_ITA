@@ -1,0 +1,32 @@
+\begin{table}[htb]
+\centering
+\caption{Métricas por condição e modelo no benchmark NotInject, médias de 10 repetições.}
+\label{tab:resultados-notinject}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+model & condition & n & asr & utility & overBlock & invalidOutput & markedRate & meanTokens & latP50 \\
+\midrule
+llama-3.1-8b & simple & 339 & -- & 0.902 & 0.098 & 0.000 & 0.000 & 772.803 & 4.460 \\
+llama-3.1-8b & delimiting & 339 & -- & 0.919 & 0.081 & 0.001 & 0.000 & 873.287 & 4.628 \\
+llama-3.1-8b & demarking & 339 & -- & 0.901 & 0.099 & 0.000 & 0.002 & 830.562 & 3.490 \\
+llama-3.1-8b & delimiting\_demarking & 339 & -- & 0.921 & 0.079 & 0.001 & 0.002 & 910.876 & 3.689 \\
+gpt-oss-20b & simple & 339 & -- & 0.922 & 0.044 & 0.017 & 0.000 & 1881.129 & 10.591 \\
+gpt-oss-20b & delimiting & 339 & -- & 0.906 & 0.055 & 0.011 & 0.000 & 1953.257 & 10.559 \\
+gpt-oss-20b & demarking & 339 & -- & 0.932 & 0.047 & 0.013 & 0.001 & 1635.738 & 8.136 \\
+gpt-oss-20b & delimiting\_demarking & 339 & -- & 0.932 & 0.054 & 0.013 & 0.003 & 1661.217 & 8.143 \\
+llama-3.1-8b & no\_filter & 339 & -- & 1.000 & 0.000 & 0.000 & 0.000 & 540.755 & 3.879 \\
+gpt-oss-20b & no\_filter & 339 & -- & 0.964 & 0.000 & 0.000 & 0.000 & 1477.801 & 8.057 \\
+gpt-oss-safeguard & simple & 339 & -- & 0.948 & 0.016 & 0.000 & 0.000 & 1879.547 & 8.492 \\
+gpt-oss-safeguard & delimiting & 339 & -- & 0.942 & 0.019 & 0.000 & 0.000 & 1993.751 & 8.432 \\
+gpt-oss-safeguard & demarking & 339 & -- & 0.969 & 0.015 & 0.000 & 0.000 & 1626.800 & 6.008 \\
+gpt-oss-safeguard & delimiting\_demarking & 339 & -- & 0.962 & 0.019 & 0.000 & 0.001 & 1693.818 & 6.032 \\
+\bottomrule
+\end{tabular}
+}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} \textbf{model}: modelo que instancia o sistema (filtro e componente principal); nas linhas de guard, o modelo do filtro; \textbf{condition}: condição experimental: simple, delimiting, demarking, delimiting\_demarking, ou a referência no\_filter; \textbf{n}: número de itens efetivamente executados na configuração; \textbf{asr}: taxa de sucesso do ataque na saída do componente principal, sobre os itens de ataque (métrica primária; menor é melhor); \textbf{utility}: fração das tarefas benignas cumpridas; item bloqueado conta como fracasso (maior é melhor); \textbf{overBlock}: fração dos itens benignos que o filtro bloqueou (sobre-bloqueio); \textbf{invalidOutput}: fração das saídas do filtro que não puderam ser interpretadas; contam conservadoramente como não bloqueio; \textbf{markedRate}: fração dos itens liberados que receberam ao menos um trecho marcado, que é o alcance efetivo da marcação seletiva; \textbf{meanTokens}: média de tokens (entrada + saída) por item, somando os dois estágios; \textbf{latP50}: tempo de geração mediano por item, em segundos, medido pelo provedor e somando os dois estágios; exclui fila e rede.
+\end{minipage}
+\end{table}

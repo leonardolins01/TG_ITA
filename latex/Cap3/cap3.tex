@@ -1,0 +1,350 @@
+\label{sec:metodologia}
+
+\section{Fluxo da informação}\label{sec:fluxo}
+
+A Figura~\ref{fig:fluxo} descreve o fluxo proposto e define os dois pontos de
+intervenção. As instruções do desenvolvedor e a requisição do usuário chegam ao filtro por
+\textbf{canais declaradamente distintos}: o canal de instrução carrega a
+política de classificação, e o canal de dado carrega o conteúdo não confiável,
+delimitado por uma tag explícita. O filtro emite uma decisão e, quando libera a
+requisição, também a lista dos trechos que julgou perigosos. Esses trechos são
+marcados tipograficamente no texto original, que segue íntegro, sem qualquer
+supressão, e repassados ao componente principal, o qual recebe, junto ao
+texto anotado, a instrução de tratar trechos marcados como dado de risco. O
+desfecho é medido na resposta do componente principal.
+
+\begin{figure}[htb]
+\centering
+\resizebox{\textwidth}{!}{\input{figs/fluxo}}
+\caption{Fluxo da informação. O filtro recebe instrução e dado por canais
+separados; ao liberar a requisição, marca os trechos suspeitos e os repassa
+anotados ao componente principal. A medição ocorre na saída do sistema, não na
+classificação do filtro.}
+\label{fig:fluxo}
+\end{figure}
+
+O Apêndice~\ref{ape:exemplos} percorre esse fluxo sobre dois itens reais, um
+atacado e um benigno, com o texto literal do que cada estágio recebeu e
+respondeu sob cada configuração.
+
+\section{Primeiro fator: delimitação na entrada do filtro}\label{sec:fator1}
+
+O primeiro fator controla como o conteúdo não confiável é apresentado ao
+filtro, mantendo constante a política de classificação. Sem delimitação, o
+conteúdo é concatenado à requisição, como faz qualquer \textit{guardrail}
+convencional. Com delimitação, ele é envolvido em uma marcação estrutural
+explícita, isto é, a tag XML \texttt{<data>}, enquanto a política de classificação
+permanece fora de qualquer tag, e o \textit{prompt} do filtro declara que o
+conteúdo interno à tag é dado a ser inspecionado, nunca instrução a ser seguida.
+
+Um requisito de implementação decide se este fator mede o que pretende: o
+conteúdo não confiável precisa ter seus caracteres \texttt{<} e \texttt{>}
+escapados antes de entrar na tag. Sem isso, bastaria ao atacante incluir um
+\texttt{</data>} literal para encerrar a delimitação e voltar a ser lido como
+instrução. Nesta situação, o experimento estaria medindo uma delimitação que não delimita,
+situação pior do que a ausência de delimitação, por conferir falsa confiança ao
+resultado.
+
+\section{Segundo fator: marcação seletiva na saída do filtro}\label{sec:fator2}
+
+O segundo fator controla o que o filtro repassa ao componente principal quando
+decide \textbf{liberar} a requisição. Sem marcação, ele se comporta como o
+\textit{guardrail} clássico: decide passar ou bloquear e não altera o texto. Com
+marcação, o filtro marca tipograficamente, com um caractere intercalado, apenas
+os trechos que ele próprio apontou como perigosos, e o \textit{prompt} do
+componente principal declara explicitamente que trechos marcados representam
+risco e devem ser tratados como dado, jamais como instrução.
+
+É neste fator que reside a proposta inovadora do trabalho, e a diferença em relação às
+defesas por sanitização está na decisão sobre o trecho suspeito: elas o
+\textbf{removem} \cite{shi2025promptarmor, wang2025datafilter, geng2025pisanitizer};
+aqui ele é \textbf{preservado e sinalizado}. Operacionalmente, o contrato de
+saída do filtro inclui a lista literal dos trechos suspeitos, e a marcação é
+aplicada ao texto original por casamento aproximado, a mesma técnica de
+localização que o PromptArmor emprega para remover \cite{shi2025promptarmor},
+aqui empregada para preservar.
+
+A marcação é \textbf{seletiva}, e não integral, por duas razões. Marcar o bloco
+inteiro não discrimina: se tudo está marcado, nada se destaca, e a marca degrada
+a leitura do conteúdo legítimo. Em contrapartida, a marcação seletiva só protege
+aquilo que o filtro efetivamente identificou. Quando ele não aponta trecho
+algum, a condição degrada-se graciosamente para o \textit{guardrail} clássico.
+Essa dependência da qualidade da identificação é uma propriedade do método, e
+não um defeito da implementação; medi-la é parte do que o experimento faz.
+
+Com os dois fatores definidos, o cruzamento entre eles produz um desenho
+matricial $2 \times 2$: quatro condições, uma para cada combinação de presença e
+ausência da delimitação na entrada e da marcação seletiva na saída
+(Tabela~\ref{tab:condicoes}). Os fatores são binários e independentes, e as
+quatro condições são executadas sobre os mesmos itens, o que permite isolar o
+efeito de cada intervenção e o da combinação das duas. A célula superior
+esquerda, o \textit{prompt} simples, é o \textit{guardrail} clássico: o mesmo
+filtro, com a mesma política, sem separação de canal em nenhum dos dois pontos.
+É contra ela que se mede o efeito da separação. A referência sem filtro, que
+não tem \textit{guardrail} algum, não pertence à tabela e é descrita na
+Seção~\ref{sec:linhas}.
+
+\begin{table}[H]
+\centering
+\caption{As quatro condições do desenho fatorial.}
+\label{tab:condicoes}
+\begin{tabular}{lll}
+\toprule
+ & Sem marcação & Com marcação seletiva \\
+\midrule
+Sem delimitação & \textit{prompt} simples & marcação \\
+Com delimitação & delimitação & delimitação + marcação \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} Linhas: primeiro fator, a delimitação na entrada do filtro
+(Seção~\ref{sec:fator1}). Colunas: segundo fator, a marcação seletiva na saída
+do filtro (Seção~\ref{sec:fator2}). Cada célula nomeia a condição como ela
+aparece nas figuras e tabelas de resultados. A composição exata das mensagens
+de cada condição está na Tabela~\ref{tab:ape_montagem}, no
+Apêndice~\ref{ape:exemplos}.
+\end{minipage}
+\end{table}
+
+\section{Linhas: modelos e referências}\label{sec:linhas}
+
+Cada bateria é executada sobre dois modelos abertos, e o modelo instancia o
+\textbf{sistema inteiro}, tanto o filtro quanto o componente principal, de
+modo que cada bateria descreva um sistema homogêneo. Os modelos são o
+Llama-3.1-8B-Instruct e o gpt-oss-20b, este último uma arquitetura de mistura de especialistas com 21
+bilhões de parâmetros totais e 3,6 bilhões ativos por \textit{token}.
+
+Somam-se as referências. A primeira é a condição \textbf{sem filtro}, que
+estabelece a taxa de sucesso de ataque sem defesa alguma; sem ela não haveria
+denominador contra o qual expressar qualquer ganho. A segunda é o
+\textbf{filtro fine-tunado} da família gpt-oss: o gpt-oss-safeguard, treinado
+para classificação de segurança sobre exatamente o mesmo \textit{backbone} do
+gpt-oss-20b, entra no papel de filtro nas mesmas quatro condições da
+Tabela~\ref{tab:condicoes}, com o gpt-oss-20b como componente principal. Assim
+a comparação isola, célula a célula, o que o treinamento disponível na família
+acrescenta e o que a separação de canal ainda acrescenta sobre um filtro
+treinado, e o faz por medição direta, sem depender de números publicados por
+terceiros. O gpt-oss-safeguard é um classificador de segurança de conteúdo
+guiado pela política do \textit{prompt} de sistema, mas não é um detector treinado
+especificamente para \textit{prompt injection}, portanto, ele recebe a mesma política que
+os modelos abertos.
+
+A família Llama não recebe referência equivalente, e a razão é de
+disponibilidade. Os detectores treinados especificamente para \textit{prompt
+injection} sobre esse \textit{backbone} existem como pesos publicados
+\cite{wang2025datafilter, geng2025pisanitizer, jacob2025promptshield}, mas
+nenhum é servido por API: usá-los exigiria hospedar um modelo de oito bilhões
+de parâmetros em infraestrutura própria, o que sairia do custo e da
+reprodutibilidade que o trabalho adota. Os detectores pequenos o bastante para
+rodar sem servidor dedicado são codificadores treinados à parte, e não modelos
+da família avaliada. Essas defesas permanecem, portanto, como referência de
+literatura, discutidas no Capítulo~\ref{cap:fundamentacao}, e a comparação
+medida é a que a família gpt-oss permite. O \textit{guard} de conteúdo da
+família Llama, o Llama Guard~4, não entra no desenho por ser derivado do
+Llama~4 Scout, e não do Llama~3.1.
+
+O desenho completo compreende, portanto, \textbf{quatorze execuções} por
+benchmark: as quatro condições sobre os dois modelos abertos, duas referências
+sem filtro e as quatro condições com o filtro fine-tunado.
+
+\section{Benchmarks}\label{sec:benchmarks}
+
+A avaliação usa três benchmarks públicos e citáveis, cada um responsável por um
+eixo distinto do desfecho:
+
+\begin{itemize}
+  \item \textbf{BIPIA} \cite{yi2025bipia}: injeção indireta em cinco tarefas
+  de texto (correio eletrônico, perguntas sobre página web, tabelas, sumarização
+  e código). Fornece simultaneamente a taxa de sucesso do ataque e a utilidade na
+  tarefa legítima, e é o único dos três que exercita o fluxo completo até a
+  resposta do componente principal. É o benchmark primário.
+  \item \textbf{SEP} \cite{zverev2025separation}: mede diretamente o grau de
+  separação entre instrução e dado, comparando o comportamento do modelo quando
+  a mesma sentença ocupa a posição de instrução e a de dado. É o instrumento que
+  liga o resultado empírico à propriedade formal que a intervenção pretende
+  melhorar.
+  \item \textbf{NotInject} \cite{li2024injecguard}: conjunto exclusivamente
+  benigno, construído com palavras-gatilho que induzem detectores ao erro. Mede
+  o sobre-bloqueio, isto é, o preço pago em falsos positivos por qualquer ganho
+  de detecção.
+\end{itemize}
+
+A amostragem é estratificada por rótulo com semente fixa, e as suítes são
+congeladas antes da execução.
+
+\section{Métricas e protocolo}\label{sec:protocolo}
+
+Registram-se métricas em dois pontos. \textbf{No filtro}: taxa de detecção a
+1\% de falsos positivos, sobre-bloqueio sobre o NotInject, custo em
+\textit{tokens} e tempo de geração p50/p95, informado pelo provedor de cada
+chamada, além da \textbf{taxa de saída inválida}: modelos
+pequenos frequentemente violam o formato de saída pedido, e itens
+inválidos são contabilizados como não bloqueio.
+\textbf{Na saída do componente principal}: taxa de sucesso do ataque, utilidade
+preservada na tarefa benigna, e a decomposição dos erros em falso-negativo
+(ataque liberado e executado) e falso-positivo (requisição benigna bloqueada ou
+degradada pela marcação). A resposta vazia do componente principal, que ocorre
+quando um modelo de raciocínio esgota o teto de \textit{tokens} antes de
+responder, é tratada como saída inválida, e não como bloqueio: não executa o
+ataque, não cumpre a tarefa e não entra no sobre-bloqueio, que mede apenas a
+decisão do filtro. Sua frequência é reportada à parte, como a da saída
+inválida do filtro. A tarefa conta como cumprida quando ao menos metade
+das palavras de conteúdo da resposta de referência aparece, como palavra
+inteira, na resposta produzida; referências curtas, como um número, precisam
+aparecer por inteiro. Palavra, aqui, é uma sequência de letras e dígitos, de
+modo que pontuação e marcação de formatação coladas a ela não impedem o
+casamento. A regra evita dois erros de um critério mais simples: separar as
+palavras só por espaço reprovaria respostas corretas escritas em negrito ou
+seguidas de ponto, e procurar a referência como trecho do texto aprovaria
+``4'' dentro de qualquer número que contivesse esse dígito.
+
+Explicando a taxa de detecção a 1\% de falsos positivos: a forma de medição
+vem de \citeonline{jacob2025promptshield}, que argumentam que, no tráfego
+real, as entradas benignas superam de longe os ataques, de modo que um
+detector só é implantável se quase nunca bloquear conteúdo legítimo. Em vez
+de julgar o detector pelo limiar padrão da classificação, eles calibram o
+limiar para uma taxa alvo de falsos positivos (1\%, 0{,}5\%, 0{,}1\% e
+0{,}05\%) e reportam a detecção obtida em cada uma. Aqui adota-se o alvo de
+1\%, o menos exigente da escala, porque as amostras têm 150 itens benignos e
+alvos menores não teriam resolução. Além da decisão, o filtro atribui a cada
+item um escore de risco entre 0 e 1. Ordenados os itens por escore,
+pergunta-se a partir de que valor se deveria bloquear para que, no máximo,
+1\% dos itens benignos fossem bloqueados, e reporta-se a fração dos atacados
+que esse limiar captura. Um exemplo em miniatura: dez itens, cinco
+benignos com escores 0{,}0, 0{,}1, 0{,}2, 0{,}3 e 0{,}5, e cinco atacados com
+escores 0{,}4, 0{,}6, 0{,}7, 0{,}8 e 0{,}9. Bloqueando a partir de 0{,}6,
+caem quatro atacados e nenhum benigno: detecção de 0{,}80 com 0\% de falsos
+positivos. Baixando o limiar para 0{,}5, o benigno de escore 0{,}5 passa a
+ser bloqueado, e a taxa de falsos positivos salta para 20\%, fora do
+orçamento. O maior limiar que respeita a restrição é, portanto, 0{,}6, e a
+métrica vale 0{,}80; o atacado de escore 0{,}4 fica sem detecção, e esse é o
+preço da restrição. Com os 150 benignos do BIPIA, 1\% equivale a no máximo
+um benigno bloqueado. A métrica é, assim, uma reanálise dos escores após a
+execução: o limiar que o filtro de fato aplicou na bateria é o que alimenta
+as demais métricas, enquanto esta mede quanto o classificador detectaria se o
+limiar fosse ajustado sob a restrição. Ela depende da resolução do escore: um
+filtro que só emite três valores distintos raramente encontra um limiar
+intermediário, e o número reportado cai a zero, convenção que também segue
+a referência: quando nenhum limiar atinge a taxa alvo, a detecção é dada
+como nula.
+
+O efeito é exibido através da \textbf{diferença} contra duas referências distintas: 
+sem filtro e \textit{prompt} simples, porque elas respondem a perguntas diferentes. 
+Contra a condição \textbf{sem filtro}, obtém-se o quanto o \textit{guardrail} protege no total; contra o
+\textit{prompt} \textbf{simples} (que já é um \textit{guardrail} completo)
+obtém-se o que é atribuível especificamente à separação de canal, que é a
+pergunta de pesquisa.
+
+A bateria inteira é executada \textbf{dez vezes}, com a mesma configuração e
+sobre os mesmos itens. A repetição existe porque o modelo não é
+determinístico, nem mesmo com temperatura zero: o \textit{prompt} simples e a
+marcação enviam ao filtro exatamente o mesmo texto, já que a marcação só age
+depois da decisão, e ainda assim a decisão sobre um mesmo item muda de uma
+execução para outra. O desfecho de cada item passa a ser a média das suas dez
+repetições, isto é, a fração delas em que o ataque foi executado ou a tarefa
+foi cumprida, e é sobre essas médias que todas as grandezas são calculadas.
+
+Os intervalos de confiança são de 95\% e vêm do \textit{bootstrap} BCa
+\cite{efron1987better}, com 10.000 reamostragens dos itens, tanto para as
+taxas absolutas quanto para as diferenças entre condições e para os efeitos
+do desenho fatorial. Como todas as condições são avaliadas sobre exatamente
+os mesmos itens, a diferença entre duas condições é calculada item a item, e
+cada reamostragem sorteia itens levando junto os seus valores nas condições
+comparadas. O intervalo é, assim, pareado: a variação que vem do item, e não
+da condição, sai da conta. A unidade sorteada é o item, e não a execução.
+Cada item entra com a média das suas repetições, e a variação entre
+repetições viaja com ele; contar cada execução como um item independente
+trataria dez medições do mesmo item como dez itens e estreitaria o intervalo
+sem fundamento. O BCa corrige o viés e a assimetria da distribuição
+reamostrada. Quando menos de cinco itens se afastam do valor mais comum, como
+numa taxa de sobre-bloqueio quase sempre nula, a reamostragem não tem o que
+sortear e devolveria um intervalo de largura nula ou quase, que afirmaria uma
+precisão que o dado não tem. Nesses casos não se reporta intervalo: a barra
+aparece sem haste, e o valor se lê como a contagem que ele é, por exemplo um
+bloqueio em 1.500 decisões. O valor central é sempre a média sobre os itens, que
+coincide com a taxa agregada das dez repetições. Nas figuras, o intervalo
+aparece como a haste vertical em torno de cada barra ou ponto, e nas
+diferenças a leitura relevante é se a haste contém ou não o zero: quando não
+contém, a diferença não se explica pelo acaso, seja o da amostragem dos itens,
+seja o da variação entre execuções.
+
+O desenho fatorial permite, além das comparações contra o \textit{prompt}
+simples, estimar o efeito de cada fator usando as quatro condições de uma vez.
+O \textbf{efeito principal} da delimitação é a média das duas condições com
+delimitação menos a média das duas sem; o da marcação é definido da mesma
+forma. A \textbf{interação} é a diferença entre o ganho da marcação com e sem
+delimitação, e vale zero quando os dois fatores simplesmente se somam. Cada
+efeito é calculado item a item e resumido pela média; como cada item entra
+nas quatro condições, o intervalo fica mais estreito do que o de qualquer
+comparação entre duas condições. O intervalo é o mesmo BCa sobre os itens. O
+Apêndice~\ref{ape:incerteza} desenvolve as contas dos intervalos sobre
+exemplos numéricos e mostra como as dez repetições entram nelas.
+
+A semente da amostragem é fixa, de modo que as dez repetições usam os mesmos
+itens, e todos os registros por item são persistidos, o que garante a
+reprodutibilidade da análise. O registro de cada item inclui o conteúdo não
+confiável como cada estágio o recebeu: delimitado, na entrada do
+filtro; anotado, na entrada do componente principal, além dos trechos
+efetivamente marcados, de modo que a transformação aplicada pelo
+\textit{guardrail} possa ser auditada após a execução, e não apenas inferida da
+condição.
+
+\section{Situando o resultado frente ao \textit{fine-tuning}}\label{sec:ancora}
+
+Saber o quanto a configuração recupera exige compará-la a um modelo treinado
+para o papel de filtro, e a comparação é feita por medição direta, na mesma
+bateria, sobre os mesmos itens e com as mesmas métricas. O gpt-oss-safeguard
+compartilha o \textit{backbone} do gpt-oss-20b e roda as mesmas quatro
+condições, o que permite ler a diferença em dois sentidos: entre as duas
+linhas, célula a célula, está o que o treinamento de segurança acrescenta;
+dentro da linha do safeguard está o que a separação de canal acrescenta a um
+filtro já treinado. A segunda leitura é a que interessa à pergunta de
+pesquisa, porque responde se a configuração ainda tem efeito quando o filtro
+não é um modelo de uso geral.
+
+Resultados publicados por terceiros sobre os mesmos benchmarks abertos
+\cite{chen2025metasecalign, wang2025datafilter} entram apenas como contexto
+secundário, e cada número externo é registrado com benchmark, métrica, valor e
+fonte, de modo que sua procedência acompanhe o resultado.
+
+\section{Execução e consolidação}\label{sec:analise}
+
+A bateria foi executada integralmente sobre os três benchmarks, com quatorze
+execuções por benchmark: as quatro condições da Tabela~\ref{tab:condicoes} nos
+dois modelos abertos, as duas referências sem filtro e as quatro condições com
+o filtro fine-tunado, ou seja, 42 execuções por repetição. Com as dez
+repetições, a bateria soma \textbf{420 execuções e 131.460 registros}, um por
+item em cada repetição. O BIPIA e o SEP foram avaliados sobre 300 itens
+amostrados de forma estratificada; do NotInject, que é menor, foram usados os
+339 itens completos.
+
+Na consolidação dos registros são calculados todos os intervalos de confiança, cada condição
+contra as duas referências descritas na Seção~\ref{sec:protocolo}, para taxa
+de sucesso do ataque e para utilidade, e não apenas os de um recorte.
+
+\subsection{Orçamento de geração}
+
+Toda chamada de modelo recebe um teto de geração: 2.048 \textit{tokens} no
+filtro e 8.192 no componente principal, iguais para todas as condições. A
+finalidade do teto é limitar custo e latência por item e garantir que cada
+chamada termine; o valor, porém, não é indiferente ao resultado. Um dos modelos
+abertos adotados é modelo de raciocínio: ele consome parte do orçamento de
+geração antes de emitir a resposta e, se o teto é alcançado antes do fim, a
+interface devolve conteúdo vazio, acompanhado da indicação de truncamento. Uma
+resposta vazia não contém a testemunha do ataque, e por isso conta como ataque
+não executado; tampouco cumpre a tarefa. O efeito não é uniforme: o
+esvaziamento cresce com o comprimento do \textit{prompt}, e as condições que
+acrescentam texto, justamente as que implementam a separação de canal, seriam
+as mais truncadas, produzindo um viés na direção da hipótese.
+
+O teto de 8.192 \textit{tokens} no componente principal foi escolhido para
+que a falta de orçamento não decida o resultado: a esse valor, o esvaziamento
+fica restrito a uma pequena fração das respostas, em que o modelo esgota o teto
+raciocinando. Essas respostas vazias contam como saída inválida do
+componente, com frequência reportada à parte (Seção~\ref{sec:res_validade}).
+No filtro, o teto de 2.048 \textit{tokens} basta para a decisão em JSON; as
+chamadas que o atingem sem decisão legível contam como não bloqueio, a regra
+conservadora adotada para toda saída inválida. O registro de cada item guarda
+o motivo de término dos dois estágios.

@@ -1,0 +1,508 @@
+\section{Notação}\label{sec:apeB_notacao}
+
+Este apêndice desenvolve, conta por conta, os intervalos de confiança usados
+nos Capítulos~\ref{cap:metodologia} e~\ref{cap:resultados}. Há um método só:
+o \textit{bootstrap} BCa \cite{efron1987better} sobre os itens, aplicado às
+taxas de cada condição, às diferenças entre duas condições avaliadas sobre os
+mesmos itens e aos efeitos do desenho fatorial. As seções seguem a ordem em
+que as peças se apoiam umas nas outras: o pareamento
+(Seção~\ref{sec:apeB_pareada}), os efeitos do desenho fatorial
+(Seção~\ref{sec:apeB_efeitos}), o BCa conta por conta
+(Seção~\ref{sec:apeB_bca}), o caso em que não há variação suficiente para um
+intervalo (Seção~\ref{sec:apeB_degenera}) e o papel das dez repetições da
+bateria (Seção~\ref{sec:apeB_repeticoes}). Os exemplos numéricos foram
+recalculados pelas funções do projeto (\texttt{metrics.contrastCi} e
+\texttt{metrics.itemCi}), e os valores intermediários, refeitos à parte e
+conferidos contra elas. A Tabela~\ref{tab:apeB_simbolos} reúne os símbolos.
+
+\begin{table}[H]
+\centering
+\caption{Símbolos usados neste apêndice.}
+\label{tab:apeB_simbolos}
+\begin{tabular}{ll}
+\toprule
+símbolo & significado \\
+\midrule
+$n$ & número de itens na comparação \\
+$e, f, g, h$ & contagens da tabela pareada (Tabela~\ref{tab:apeB_pareada}) \\
+$\hat p_1, \hat p_2$ & taxas observadas da condição avaliada e da referência \\
+$d$ & diferença observada, $\hat p_1 - \hat p_2$ \\
+$\rho$ & correlação entre os desfechos das duas condições nos mesmos itens \\
+$z$ & quantil 0,975 da normal padrão, $z = 1{,}959964$ \\
+$\Phi, \Phi^{-1}$ & função de distribuição da normal padrão e sua inversa \\
+$\hat\theta$ & efeito estimado (média dos contrastes por item) \\
+$z_0, a$ & correção de viés e aceleração do BCa \\
+$\alpha_1, \alpha_2$ & percentis corrigidos em que o BCa corta a distribuição \\
+$R$ & número de repetições da bateria, $R = 10$ \\
+$y_{ir}, \bar y_i$ & desfecho do item $i$ na repetição $r$, e sua média sobre as repetições \\
+$\sigma_b^2, \sigma_w^2$ & variância entre itens e variância dentro do item, entre repetições \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} Os números seguem a convenção do texto, com vírgula
+decimal. O índice 1 designa a condição avaliada e o índice 2 a referência
+(o \textit{prompt} simples, nos exemplos).
+\end{minipage}
+\end{table}
+
+\section{Intervalo de confiança e quantil normal}\label{sec:apeB_ic}
+
+A taxa medida numa condição é uma estimativa obtida de uma amostra de itens;
+outra amostra do mesmo \textit{benchmark} daria outro valor. Um intervalo de
+confiança de 95\% é um procedimento que, aplicado a amostras repetidas,
+contém o valor verdadeiro em 95\% delas. Essa frequência é a
+\textbf{cobertura} do método. Um intervalo estreito demais perde cobertura,
+e é esse o critério que decide, na Seção~\ref{sec:apeB_degenera}, quando a
+amostra não sustenta intervalo algum.
+
+O BCa usa a distribuição normal padrão para corrigir os seus pontos de corte.
+Para 95\% de confiança restam 2,5\% em cada cauda, e o ponto que deixa
+97,5\% da área à esquerda é
+\begin{equation}
+z = \Phi^{-1}(0{,}975) = 1{,}959964.
+\label{eq:apeB_z}
+\end{equation}
+
+\section{Duas condições sobre os mesmos itens}\label{sec:apeB_pareada}
+
+Toda comparação do trabalho opõe duas condições avaliadas sobre os mesmos
+itens. Numa única execução, cada item fornece um par de desfechos binários,
+e as quatro combinações possíveis formam a tabela pareada
+(Tabela~\ref{tab:apeB_pareada}). Com as repetições, o desfecho de cada item
+deixa de ser binário (Seção~\ref{sec:apeB_repeticoes}), mas o raciocínio do
+pareamento, desenvolvido aqui sobre o caso binário, continua o mesmo. O
+exemplo é uma comparação de utilidade sobre $n = 150$ itens benignos, em que
+a condição avaliada cumpriu a tarefa em 73 itens e o \textit{prompt} simples
+em 80.
+
+\begin{table}[H]
+\centering
+\caption{Tabela pareada das duas condições no exemplo de utilidade.}
+\label{tab:apeB_pareada}
+\begin{tabular}{lccc}
+\toprule
+ & referência: sim & referência: não & total \\
+\midrule
+condição: sim & $e = 70$ & $f = 3$ & $e + f = 73$ \\
+condição: não & $g = 10$ & $h = 67$ & $g + h = 77$ \\
+\midrule
+total & $e + g = 80$ & $f + h = 70$ & $n = 150$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} ``Sim'' é o desfecho medido (aqui, tarefa cumprida) e
+``não'' a sua ausência. $e$ conta os itens com desfecho nas duas condições;
+$f$, só na condição avaliada; $g$, só na referência; $h$, em nenhuma. $f$ e
+$g$ são os itens discordantes.
+\end{minipage}
+\end{table}
+
+As taxas são $\hat p_1 = (e+f)/n$ e $\hat p_2 = (e+g)/n$, e a diferença
+depende apenas dos itens discordantes:
+\begin{equation}
+d = \hat p_1 - \hat p_2 = \frac{f - g}{n} = \frac{3 - 10}{150} = -0{,}046667.
+\label{eq:apeB_d}
+\end{equation}
+Os 70 itens cumpridos nas duas condições e os 67 cumpridos em nenhuma não
+entram na diferença. Calculada item a item, a diferença vale $+1$ nos 3 itens
+em que só a condição cumpriu a tarefa, $-1$ nos 10 em que só a referência
+cumpriu e 0 nos outros 137; $d$ é a média desses 150 valores.
+
+Para duas variáveis aleatórias $X$ e $Y$, com desvios-padrão $\sigma_X$ e
+$\sigma_Y$ e correlação $\rho$,
+\begin{equation}
+\mathrm{Var}(X - Y) = \sigma_X^2 + \sigma_Y^2 - 2\rho\,\sigma_X\sigma_Y.
+\label{eq:apeB_var}
+\end{equation}
+Se $X$ e $Y$ são independentes, $\rho = 0$ e as incertezas somam-se em
+quadratura. Quando as duas taxas são medidas sobre os mesmos itens, um item
+fácil tende a dar o mesmo desfecho nas duas condições, e a correlação é
+positiva: o termo $-2\rho\sigma_X\sigma_Y$ desconta a variação que vem do
+item, comum aos dois lados, e mantém na diferença apenas a que vem da
+condição.
+
+O \textit{bootstrap} pareado aproveita essa correlação sem precisar
+calculá-la. Ele sorteia itens, e cada item sorteado leva consigo os dois
+desfechos; reamostrar a diferença item a item é o mesmo que reamostrar os
+pares. Um \textit{bootstrap} não pareado, que sorteasse as duas condições
+separadamente, trataria as amostras como independentes.
+
+\begin{bloco}{Pareado e não pareado no exemplo}
+\etapa{Desvios-padrão}
+\conta{\sigma_1 &= 0{,}5015, \qquad \sigma_2 = 0{,}5006 &&\text{das duas condições}\\
+\sigma_{1-2} &= 0{,}2916 &&\text{da diferença item a item}}
+(A correlação implícita, pela Equação~\eqref{eq:apeB_var}, é $\rho = 0{,}83$:
+137 dos 150 itens tiveram o mesmo desfecho nas duas condições.)
+
+\etapa{Erro-padrão da diferença}
+\conta{\text{não pareado: } \sqrt{(0{,}5015^2 + 0{,}5006^2)/150} &= 0{,}0579\\
+\text{pareado: } 0{,}2916/\sqrt{150} &= 0{,}0238}
+
+\etapa{Intervalo BCa, 10.000 reamostragens, semente 42}
+\conta{\text{não pareado: } [-0{,}153;\ +0{,}067], \qquad
+\text{pareado: } [-0{,}100;\ -0{,}007]}
+\end{bloco}
+
+O pareamento reduz a largura do intervalo de 0,220 para 0,093, menos da
+metade, e é o que permite afirmar, neste exemplo, que a condição custou
+utilidade. A largura do intervalo pareado depende sobretudo do número de
+itens discordantes, e não do número de itens.
+
+\section{Efeitos do desenho \texorpdfstring{$2 \times 2$}{2×2}}\label{sec:apeB_efeitos}
+
+Sejam $S$, $D$, $M$ e $DM$ os desfechos de um item sob o \textit{prompt}
+simples, a delimitação, a marcação e a combinação das duas: 0 ou 1 numa
+execução, e a média $\bar y_i$ das repetições na bateria completa. Os efeitos
+do desenho fatorial são contrastes calculados item a item:
+\begin{equation}
+\frac{(D + DM) - (S + M)}{2}, \qquad
+\frac{(M + DM) - (S + D)}{2}, \qquad
+(DM - M) - (D - S),
+\label{eq:apeB_efeitos}
+\end{equation}
+que são, respectivamente, o efeito principal da delimitação, o efeito
+principal da marcação e a interação. O efeito estimado $\hat\theta$ é a média
+do contraste sobre os itens. A Tabela~\ref{tab:apeB_contraste} ilustra o
+contraste da delimitação em quatro itens.
+
+\begin{table}[H]
+\centering
+\caption{Contraste da delimitação em quatro itens ilustrativos.}
+\label{tab:apeB_contraste}
+\begin{tabular}{lccccr}
+\toprule
+item & $S$ & $D$ & $M$ & $DM$ & efeito da delimitação \\
+\midrule
+a & 1 & 0 & 1 & 0 & $[(0+0) - (1+1)]/2 = -1$ \\
+b & 1 & 1 & 1 & 0 & $[(1+0) - (1+1)]/2 = -0{,}5$ \\
+c & 0 & 0 & 0 & 0 & $[(0+0) - (0+0)]/2 = 0$ \\
+d & 0 & 1 & 0 & 0 & $[(1+0) - (0+0)]/2 = +0{,}5$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} Cada coluna de condição vale 1 se o ataque foi executado no
+item e 0 caso contrário. A última coluna aplica a primeira expressão da
+Equação~\eqref{eq:apeB_efeitos}.
+\end{minipage}
+\end{table}
+
+A interação é nula quando o ganho da marcação é o mesmo com e sem
+delimitação, isto é, quando os dois fatores se somam. Como cada item entra no
+efeito principal com quatro medições, o contraste por item assume valores
+intermediários ($\pm 0{,}5$, numa execução) e tem desvio-padrão menor que o
+de uma comparação entre duas condições, cujo valor por item, numa execução,
+só pode ser $-1$, 0 ou $+1$. Num exemplo sintético de 150 itens, com uma
+execução por item (Tabela~\ref{tab:apeB_sintetico}),
+o desvio-padrão por item cai de 0,4652, na comparação da delimitação com o
+\textit{prompt} simples, para 0,3490 no efeito principal, e a largura do
+intervalo BCa cai na mesma proporção: de 0,147 ($[-0{,}133;\ +0{,}013]$) para
+0,110 ($[-0{,}110;\ 0{,}000]$).
+
+\begin{table}[H]
+\centering
+\caption{Distribuição do contraste da delimitação no exemplo sintético.}
+\label{tab:apeB_sintetico}
+\begin{tabular}{rrr}
+\toprule
+valor por item & itens & soma \\
+\midrule
+$-1$ & 4 & $-4{,}0$ \\
+$-0{,}5$ & 32 & $-16{,}0$ \\
+0 & 93 & $0{,}0$ \\
+$+0{,}5$ & 19 & $+9{,}5$ \\
+$+1$ & 2 & $+2{,}0$ \\
+\midrule
+total & 150 & $-8{,}5$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} O exemplo é sintético e serve apenas para ilustrar o
+cálculo; os valores medidos estão no Capítulo~\ref{cap:resultados}. O efeito
+estimado é $\hat\theta = -8{,}5/150 = -0{,}0567$. Na comparação da
+delimitação com o \textit{prompt} simples sobre os mesmos itens, 21 itens
+valem $-1$, 117 valem 0 e 12 valem $+1$.
+\end{minipage}
+\end{table}
+
+\section{Intervalo BCa}\label{sec:apeB_bca}
+
+O intervalo do trabalho é o \textit{bootstrap} BCa
+(\textit{bias-corrected and accelerated}) de \citeonline{efron1987better},
+com 10.000 reamostragens dos itens. Ele serve a qualquer grandeza que seja a
+média de um valor por item: uma taxa, uma diferença entre duas condições ou
+um efeito do desenho fatorial, e não exige que esse valor seja binário, o que
+o torna adequado às médias das repetições (Seção~\ref{sec:apeB_repeticoes}).
+Ele parte do \textit{bootstrap} percentil e corrige os percentis de corte por
+dois parâmetros.
+
+O primeiro é a correção de viés $z_0$. Se a distribuição das médias
+reamostradas estivesse centrada em $\hat\theta$, metade delas ficaria abaixo
+do valor observado. Com $\hat\theta^*_b$ a média da $b$-ésima reamostragem e
+$B = 10.000$, contando os empates pela metade,
+\begin{equation}
+z_0 = \Phi^{-1}\!\left(
+\frac{\#\{\hat\theta^*_b < \hat\theta\} + \tfrac12\,\#\{\hat\theta^*_b = \hat\theta\}}{B}
+\right).
+\label{eq:apeB_z0}
+\end{equation}
+
+O segundo é a aceleração $a$, que mede a assimetria pelo \textit{jackknife}:
+com $\hat\theta_{(i)}$ a média calculada sem o item $i$,
+$\bar\theta$ a média dos $\hat\theta_{(i)}$ e
+$d_i = \bar\theta - \hat\theta_{(i)}$,
+\begin{equation}
+a = \frac{\sum_i d_i^3}{6\left(\sum_i d_i^2\right)^{3/2}}.
+\label{eq:apeB_a}
+\end{equation}
+
+Os percentis corrigidos são
+\begin{equation}
+\alpha_1 = \Phi\!\left(z_0 + \frac{z_0 - z}{1 - a(z_0 - z)}\right), \qquad
+\alpha_2 = \Phi\!\left(z_0 + \frac{z_0 + z}{1 - a(z_0 + z)}\right),
+\label{eq:apeB_alpha}
+\end{equation}
+e o intervalo vai do percentil $\alpha_1$ ao percentil $\alpha_2$ das médias
+reamostradas. Com $z_0 = a = 0$, recupera-se o percentil simples.
+
+\begin{bloco}{Intervalo BCa no exemplo sintético}
+\etapa{Distribuição reamostrada}
+10.000 médias de 150 itens sorteados com reposição, com semente 42. Os
+percentis 2,5 e 97,5, sem correção, são $-0{,}1133$ e $0{,}0000$.
+
+\etapa{Correção de viés}
+\conta{\frac{4793 + 495/2}{10.000} = 0{,}5040, \qquad z_0 = \Phi^{-1}(0{,}5040) = 0{,}0102}
+(4793 médias abaixo de $\hat\theta = -0{,}0567$ e 495 iguais a ela.)
+
+\etapa{Aceleração}
+\conta{\textstyle\sum_i d_i^2 = 8{,}2286 \times 10^{-4}, \qquad
+\sum_i d_i^3 = -1{,}4876 \times 10^{-7}, \qquad
+a = -0{,}00105}
+(As 150 médias sem um item assumem cinco valores distintos; a assimetria é
+desprezível.)
+
+\etapa{Percentis corrigidos}
+\conta{\alpha_1 = \Phi(-1{,}9437) = 0{,}0260, \qquad \alpha_2 = \Phi(1{,}9762) = 0{,}9759}
+
+\etapa{Resultado}
+Os percentis 2,60 e 97,59 da distribuição reamostrada dão o intervalo
+$[-0{,}1100;\ 0{,}0000]$, o mesmo que \texttt{metrics.contrastCi} devolve.
+\end{bloco}
+
+A correção deslocou o limite inferior de $-0{,}1133$ para $-0{,}1100$, porque
+a distribuição reamostrada estava levemente deslocada para baixo do valor
+observado ($z_0 > 0$). O resultado de um \textit{bootstrap} depende do
+sorteio; a semente fixa torna o intervalo reprodutível.
+
+\section{Quando não há intervalo}\label{sec:apeB_degenera}
+
+O \textit{bootstrap} mede a incerteza pela variação que consegue sortear
+dentro da amostra. Quando quase todos os itens têm o mesmo valor, quase não
+há o que sortear, e o intervalo passa a refletir os poucos itens diferentes
+que a amostra contém, e não a incerteza sobre a taxa. A
+Tabela~\ref{tab:apeB_degenera} mostra o efeito numa taxa de sobre-bloqueio
+sobre 150 itens benignos, em que cada item diferente foi bloqueado em uma das
+dez repetições (média 0,1) e os demais nunca.
+
+\begin{table}[H]
+\centering
+\caption{Intervalo BCa de uma taxa quase nula, conforme o número de itens que variam.}
+\label{tab:apeB_degenera}
+\begin{tabular}{rrr}
+\toprule
+itens que variam & taxa & intervalo BCa \\
+\midrule
+0 & 0,0000 & $[0{,}0000;\ 0{,}0000]$ \\
+1 & 0,0007 & $[0{,}0000;\ 0{,}0033]$ \\
+2 & 0,0013 & $[0{,}0000;\ 0{,}0047]$ \\
+3 & 0,0020 & $[0{,}0007;\ 0{,}0053]$ \\
+4 & 0,0027 & $[0{,}0007;\ 0{,}0067]$ \\
+5 & 0,0033 & $[0{,}0013;\ 0{,}0073]$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} 150 itens, dos quais os que variam têm média 0,1 nas dez
+repetições e os demais, 0. Taxa é a média sobre os itens. Intervalo calculado
+por \texttt{metrics.contrastCi}, com 10.000 reamostragens e semente 42.
+\end{minipage}
+\end{table}
+
+Sem nenhum item diferente, todo sorteio dá a mesma média, e o intervalo tem
+largura zero: afirmaria que a taxa é exatamente nula a partir de nenhuma
+ocorrência. Com um item, afirmaria que ela não passa de 0,0033, embora outra
+amostra de 150 itens pudesse facilmente conter dois ou três itens como esse.
+Com três, o limite inferior já se afasta do zero. Em todas as linhas, o
+intervalo acompanha a contagem observada em vez de medir o quanto ela
+poderia ser outra. Por isso o trabalho só reporta intervalo quando ao menos
+cinco itens se afastam do valor mais comum, limiar que segue a regra usual de
+exigir cinco ocorrências antes de confiar numa aproximação. Abaixo dele, a
+taxa é reportada sem intervalo: a barra aparece sem haste nas figuras, e a
+coluna \texttt{method} dos arquivos de resultados registra
+\texttt{sem-variacao}. Na bateria, isso acontece em 18 das 106 taxas
+absolutas e em nenhuma diferença ou efeito.
+
+\section{Dez repetições}\label{sec:apeB_repeticoes}
+
+A bateria é executada $R = 10$ vezes, com a mesma configuração e sobre os
+mesmos itens, porque o modelo não é determinístico: a mesma entrada pode
+receber decisões diferentes em execuções diferentes. Seja
+$y_{ir} \in \{0, 1\}$ o desfecho do item $i$ na repetição $r$. O desfecho do
+item passa a ser a média
+\begin{equation}
+\bar y_i = \frac{1}{R}\sum_{r=1}^{R} y_{ir},
+\label{eq:apeB_media}
+\end{equation}
+isto é, a fração das repetições em que o ataque foi executado ou a tarefa foi
+cumprida, e a taxa da condição é a média dessas médias,
+$\frac{1}{n}\sum_i \bar y_i$, que coincide com a taxa agregada das $nR$
+execuções. Numa diferença entre condições, o valor do item é
+$\bar y_i^{A} - \bar y_i^{B}$; num efeito do desenho fatorial, o contraste da
+Equação~\eqref{eq:apeB_efeitos} aplicado às médias. O intervalo é o BCa da
+Seção~\ref{sec:apeB_bca}, sem mudança alguma: só os valores por item passam a
+cair num conjunto mais fino, múltiplos de 0,1 nas taxas e nas diferenças.
+
+\subsection*{As duas fontes de variação}
+
+A taxa medida varia por dois motivos. Os itens diferem entre si: há ataques
+que o modelo executa quase sempre e outros que ele nunca executa. E o mesmo
+item, executado de novo, pode ter outro desfecho. Chamando de $p_i$ a
+probabilidade de longo prazo de o item $i$ dar 1, a primeira fonte é a
+variância de $p_i$ entre os itens, $\sigma_b^2$, e a segunda é a média de
+$p_i(1 - p_i)$, $\sigma_w^2$, a variância de um desfecho em torno do seu
+próprio $p_i$. Para uma execução, a variância do desfecho é
+$\sigma_b^2 + \sigma_w^2$; para a média de $R$ repetições, a segunda parcela é
+dividida por $R$:
+\begin{equation}
+\mathrm{Var}(\bar y_i) = \sigma_b^2 + \frac{\sigma_w^2}{R}, \qquad
+\mathrm{EP} = \sqrt{\frac{\sigma_b^2 + \sigma_w^2/R}{n}}.
+\label{eq:apeB_decomp}
+\end{equation}
+Mesmo com uma só execução, o intervalo já cobre as duas fontes, porque cada
+desfecho observado carrega o sorteio do modelo. O que as repetições fazem é
+reduzir a segunda, e o ganho depende de quanto da variação vem de dentro do
+item.
+
+\begin{bloco}{As duas fontes no ataque ao Llama-3.1-8B sob o \textit{prompt} simples (BIPIA)}
+\etapa{Médias por item}
+Dos 150 itens atacados, 107 nunca tiveram o ataque executado ($\bar y_i = 0$),
+3 o tiveram nas dez repetições ($\bar y_i = 1$) e 40 ficaram entre os dois.
+A taxa é a média das 150 médias, $0{,}1227$.
+
+\etapa{Decomposição}
+\conta{\sigma_w^2 &= \text{média das variâncias das dez repetições de cada item} = 0{,}0474\\
+\sigma_b^2 &= \mathrm{Var}(\bar y_i) - \sigma_w^2/R = 0{,}0607}
+(Quase metade da variância de uma execução, $0{,}0474$ de $0{,}1081$, vem de
+dentro do item.)
+
+\etapa{Erro-padrão da taxa}
+\conta{\text{uma execução: } \sqrt{(0{,}0607 + 0{,}0474)/150} &= 0{,}0268\\
+\text{dez repetições: } \sqrt{(0{,}0607 + 0{,}0047)/150} &= 0{,}0209}
+
+\etapa{Intervalo}
+BCa sobre as 150 médias: $[0{,}087;\ 0{,}169]$.
+\end{bloco}
+
+Para a diferença entre a combinação dos dois fatores e o \textit{prompt}
+simples, no mesmo modelo e \textit{benchmark}, a parcela de dentro do item é
+maior: $\sigma_w^2 = 0{,}0742$ e $\sigma_b^2 = 0{,}0350$, ou 68\% da variância
+de uma execução. Isso é o esperado para uma diferença. A maior parte dos itens
+se comporta da mesma forma nas duas condições, e o que as separa numa única
+execução é, em boa parte, o sorteio do modelo. O erro-padrão cai de $0{,}0269$
+para $0{,}0168$, e o intervalo é $[-0{,}122;\ -0{,}055]$.
+
+\subsection*{O item continua sendo a unidade}
+
+A reamostragem sorteia itens, cada um com a sua média $\bar y_i$; a variação
+entre as repetições viaja dentro dessa média. A alternativa de empilhar as
+$nR = 1.500$ execuções e tratá-las como observações independentes daria
+\begin{equation}
+\mathrm{EP}_{\text{empilhado}} = \sqrt{\frac{\sigma_b^2 + \sigma_w^2}{nR}}
+= \sqrt{\frac{0{,}1081}{1.500}} = 0{,}0085,
+\end{equation}
+que divide por $R$ também a variação entre itens, como se as dez repetições
+tivessem produzido 1.500 itens distintos. No exemplo, o intervalo normal
+empilhado seria $[0{,}106;\ 0{,}139]$, duas vezes e meia mais estreito que o
+correto. Ele afirma uma precisão que não existe: os 107 itens que nunca foram
+atacados continuariam nunca atacados em qualquer número de repetições, e só
+uma amostra maior de itens reduz a parcela $\sigma_b^2$. Tratar medições
+repetidas da mesma unidade como unidades independentes é o erro conhecido
+como pseudorreplicação.
+
+\subsection*{O efeito medido na bateria}
+
+O ganho das repetições pode ser medido comparando cada intervalo calculado
+sobre as dez repetições com os dez intervalos que cada repetição, isolada,
+teria produzido (Tabela~\ref{tab:apeB_ganho}).
+
+\begin{table}[H]
+\centering
+\caption{Meia-largura mediana dos intervalos com uma repetição e com dez.}
+\label{tab:apeB_ganho}
+\begin{tabular}{lccc}
+\toprule
+grandeza & uma repetição & dez repetições & razão \\
+\midrule
+taxa absoluta & 0,050 & 0,037 & 0,74 \\
+diferença contra o \textit{prompt} simples & 0,037 & 0,020 & 0,54 \\
+efeito do desenho fatorial & 0,035 & 0,017 & 0,48 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} ``Uma repetição'' é a mediana, sobre todas as grandezas e
+as dez repetições, da meia-largura do intervalo calculado com uma repetição
+isolada; ``dez repetições'' é a mediana da meia-largura do intervalo
+reportado no Capítulo~\ref{cap:resultados}. Razão é a segunda dividida pela
+primeira.
+\end{minipage}
+\end{table}
+
+Pela Equação~\eqref{eq:apeB_decomp}, uma razão de 0,54 entre larguras
+corresponde a cerca de 80\% da variância de uma diferença vindo de dentro do
+item, e uma razão de 0,74, a cerca de metade, nas taxas absolutas. As
+diferenças e os efeitos ganham mais justamente porque neles a parcela entre
+itens é pequena. A consequência aparece na leitura dos resultados: das 45
+diferenças contra o \textit{prompt} simples, uma repetição isolada separava
+do zero, em média, 14,8 (entre 11 e 20, conforme a repetição), e as dez
+juntas separam 32; dos 45 efeitos do desenho fatorial, 11,3 (entre 8 e 17)
+contra 22. A conclusão sobre uma diferença deixa de depender de qual
+execução, entre as possíveis, por acaso foi observada.
+
+\section{Leitura das figuras}\label{sec:apeB_leitura}
+
+A Tabela~\ref{tab:apeB_leitura} resume como os elementos das figuras de taxa,
+de diferença e de efeito do Capítulo~\ref{cap:resultados} se relacionam com
+as contas deste apêndice.
+
+\begin{table}[H]
+\centering
+\caption{Correspondência entre os elementos das figuras e as contas.}
+\label{tab:apeB_leitura}
+\begin{tabular}{p{0.34\textwidth}p{0.58\textwidth}}
+\toprule
+elemento & significado \\
+\midrule
+barra ou ponto & taxa, diferença ou efeito $\hat\theta$, como média sobre os itens das médias $\bar y_i$ das dez repetições (Equação~\ref{eq:apeB_media}) \\
+haste & intervalo de 95\% por BCa sobre os itens; ausente quando menos de cinco itens variam (Seção~\ref{sec:apeB_degenera}) \\
+haste que não cruza o zero & a diferença não se explica pelo acaso, nem o da amostragem dos itens nem o da variação entre execuções \\
+haste que cruza o zero & efeito não detectado nesta amostra, o que não equivale a efeito nulo \\
+limite inferior na utilidade & maior custo de utilidade compatível com os dados \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize\raggedright
+\textbf{Legenda.} A coluna ``elemento'' nomeia o que aparece em cada painel;
+a coluna ``significado'', a grandeza correspondente neste apêndice.
+\end{minipage}
+\end{table}

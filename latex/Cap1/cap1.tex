@@ -1,0 +1,99 @@
+\label{sec:introducao}
+
+Os avanços recentes nas LLMs deslocaram o seu papel de meros assistentes de
+geração de texto para o de componentes fixos dentro do software.
+Em vez de depender exclusivamente de código pré-estabelecido para interpretar a
+intenção do usuário e acionar a funcionalidade correspondente, o sistema passa a
+delegar parte dessa interpretação a uma LLM. Essa mudança traz ganhos de
+flexibilidade, mas introduz uma classe de preocupações de segurança sem
+equivalente direto na arquitetura tradicional de software.
+
+A raiz dessas preocupações é estrutural. Na arquitetura \textit{Transformer}
+\cite{vaswani2017attention}, instruções do administradore a entrada do usuário são processados pelo mesmo canal
+de entrada, sem uma separação sintática garantida pelo modelo. Desta maneira, 
+ordens provenientes do usuário não confiável são recebidas com a mesma autoridade
+que o modelo confere às instruções do administrador. De forma diferente de
+um banco de dados, em que um analisador determinístico distingue a estrutura da
+consulta de seus valores, na LLM qualquer conteúdo textual que entre no contexto
+pode ser interpretado como instrução se for formulado dessa forma. É dessa
+indistinção que nasce o \textit{prompt injection}, demonstrado de forma
+sistemática já em 2022 \cite{perez2022ignore} e posteriormente formalizado como
+problema padronizado de avaliação \cite{liu2024formalizing}. O caso mais
+perigoso é a injeção indireta, na qual a instrução maliciosa não é
+digitada pelo atacante, mas plantada em conteúdo externo que o componente
+processa no curso normal de suas operações \cite{greshake2023ipi}.
+
+Como a superfície de ataque inclui a totalidade do espaço linguístico que pode
+alcançar o modelo, e não apenas o que o usuário digita, a prática consolidada é
+interpor, antes da execução principal, um \textit{guardrail} de entrada
+\cite{dong2024guardrails}: uma camada que classifica, normaliza ou bloqueia a
+requisição antes que ela alcance os demais módulos. Quando a decisão é tomada
+por um modelo treinado para essa função, tem-se um \textit{guard model}
+\cite{inan2023llamaguard, zeng2024shieldgemma}, hoje a abordagem dominante e
+disponível em famílias abertas \cite{zhao2025qwen3guard} e em sistemas de
+produção \cite{chennabasappa2025llamafirewall}. Via de regra, modelos usados como \textit{guard} são 
+mais leves e consequentemente mais baratos de operar do que o modelo principal, visto que sua função
+é mais específica e limitada, ao mesmo tempo que os desenvolvedores buscam não 
+escalar o custo de operação do sistema como um todo.
+
+Há aqui uma circularidade pouco explorada. O filtro que deve proteger o
+componente principal contra instruções embutidas em dados é, ele próprio, uma
+LLM que recebe instruções e dados pelo mesmo canal e, portanto, herda a
+vulnerabilidade que existe para mitigar. Ataques de evasão contra
+\textit{guardrails} exploram exatamente isso, contornando detectores por
+ofuscação e por instruções dirigidas ao detector \cite{hackett2025bypassing}. A
+literatura de defesa por marcação estrutural, que sinaliza tipograficamente a
+fronteira entre instrução confiável e dado não confiável \cite{hines2024spotlighting},
+foi proposta e avaliada para proteger o modelo principal, deixando em aberto
+a possibilidade de sua aplicação à entrada do componente de filtro.
+
+Uma segunda lacuna aparece na saída do filtro. As propostas recentes de filtro
+por modelo convergem para a proposta de remover o conteúdo suspeito.
+O PromptArmor emprega uma LLM aberta para localizar e deletar o trecho injetado
+\cite{shi2025promptarmor}; o DataFilter treina um modelo especificamente para
+apagar o trecho malicioso preservando o restante \cite{wang2025datafilter}; o
+PISanitizer identifica os \textit{tokens} injetados por meio dos pesos de
+atenção e os elimina \cite{geng2025pisanitizer}. Remover é uma decisão
+irreversível tomada sob incerteza: quando o filtro erra, informação legítima é
+destruída silenciosamente e o componente principal responde sobre um texto
+mutilado, sem saber disso. Nenhum desses trabalhos considera a alternativa de
+\textbf{preservar o trecho e sinalizá-lo}, transferindo ao componente principal
+uma informação de procedência que ele possa ponderar.
+
+Deste diagnóstico emerge a pergunta que estrutura este trabalho:
+\textbf{qual o ganho, medido na saída do sistema, de implementar separação entre
+canal de instrução e canal de dado em um \textit{guardrail} de entrada?}
+Para responder, este trabalho propõe uma abordagem que trata a separação como variável manipulável em dois pontos
+distintos: na entrada do filtro e na sua saída, medindo o efeito de cada
+combinação sob as mesmas métricas.
+
+\section{Objetivo}\label{sec:objetivo}
+
+O objetivo deste trabalho é \textbf{projetar e implementar um banco de provas
+científico} que quantifique o efeito da separação entre canal de instrução e
+canal de dado em um \textit{guardrail} de entrada instanciado por modelos
+abertos, sem \textit{fine-tuning}. A medida não é tomada na classificação
+isolada do filtro, mas na saída do componente principal: o modelo
+que efetivamente executa a tarefa, chamado na literatura de \textit{backend LLM}, 
+localizado ao final do fluxo completo.
+
+Deste objetivo derivam três contribuições pretendidas:
+
+\begin{itemize}
+  \item \textbf{Separação de canal na entrada do filtro.} Caracterizar se, e
+  quanto, aplicar marcação estrutural \cite{hines2024spotlighting} ao conteúdo
+  não confiável \textit{que o filtro inspeciona} melhora sua capacidade de
+  detecção, técnica até aqui avaliada apenas na proteção do modelo principal.
+  \item \textbf{Marcação seletiva em vez de remoção.} Propor e avaliar um filtro
+  que, ao liberar a requisição, marca tipograficamente os trechos que julgou
+  perigosos e os repassa anotados ao componente principal, o qual recebe
+  instrução explícita para tratá-los como dado de risco. Contrasta-se essa
+  decisão com a alternativa dominante de exclusão \cite{shi2025promptarmor,
+  wang2025datafilter, geng2025pisanitizer}, cuja falha destrói informação.
+  \item \textbf{O custo de dispensar o treinamento.} Situar o desempenho
+  alcançado por configuração frente ao de um modelo \textit{fine-tunado} para
+  classificação de segurança, avaliando na mesma bateria, e sob as mesmas
+  quatro condições, o filtro treinado sobre o mesmo \textit{backbone} de um dos
+  modelos adotados. A comparação é feita por medição
+  direta, e não por reuso de números publicados (Seção~\ref{sec:ancora}).
+\end{itemize}

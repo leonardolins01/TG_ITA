@@ -1,0 +1,25 @@
+# Configuração do latexmk para o TG3.
+#
+# Os arquivos auxiliares da compilação (.aux, .bbl, .toc, .lof, .lot, .log, ...)
+# vão para build/, e só o PDF fica ao lado do .tex. Eles não podem deixar de
+# existir: é por eles que o LaTeX, que lê o documento uma única vez, resolve na
+# passada seguinte o que só descobriu depois (números de figura e seção,
+# sumário, listas, bibliografia, total de páginas da FRD). O que se escolhe
+# aqui é só onde eles ficam.
+#
+# Uso, de dentro de latex/:
+#   latexmk TG3        compila, rodando pdflatex e bibtex quantas vezes precisar
+#   latexmk -c         apaga os auxiliares e mantém o PDF
+
+$pdf_mode   = 1;        # pdflatex -> PDF
+$aux_dir    = 'build';  # auxiliares aqui
+$out_dir    = '.';      # TG3.pdf em latex/, onde sempre esteve
+$bibtex_use = 2;        # roda o bibtex quando o .aux pede; o .bbl é regenerável
+
+# Roda o bibtex a partir de latex/ (`bibtex build/TG3`), e não de dentro de
+# build/. Por padrão o latexmk entra em build/ e aponta BIBINPUTS/BSTINPUTS
+# para cá, mas escreve esses caminhos no formato do Perl que o executa
+# (/c/Users/... no Git Bash), que o bibtex do MiKTeX não reconhece: ele deixa
+# de achar abnt/abnt-alf.bst e Referencias/refs.bib, e a bibliografia sai
+# vazia. Daqui, os caminhos relativos gravados no .aux funcionam direto.
+$bibtex_fudge = 0;

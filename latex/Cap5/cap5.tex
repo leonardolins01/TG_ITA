@@ -1,0 +1,243 @@
+\label{sec:conclusao}
+
+A pergunta que estruturou este trabalho pedia uma grandeza, não uma opinião:
+qual o ganho, medido na saída do sistema, de implementar separação entre canal
+de instrução e canal de dado em um \textit{guardrail} de entrada. As 420
+execuções descritas no Capítulo~\ref{cap:metodologia}, dez repetições da
+mesma bateria, permitem responder com número e intervalo, e é o que esta
+seção faz, na ordem em que as medidas foram apresentadas no
+Capítulo~\ref{cap:resultados}. Todo número citado é a média das dez
+repetições.
+
+\section{O ganho da separação de canal}\label{sec:conc_ganho}
+
+No BIPIA, único dos três \textit{benchmarks} que publica resposta de referência
+e portanto o único em que ataque e utilidade são julgados com o mesmo rigor,
+aplicar os dois fatores simultaneamente reduziu a taxa de sucesso do ataque em
+$0{,}084$ no Llama-3.1-8B (IC 95\% de $-0{,}122$ a $-0{,}055$) e em $0{,}139$
+no gpt-oss-20b (IC 95\% de $-0{,}185$ a $-0{,}099$). A comparação é sempre
+contra o \textit{prompt} simples, isto é, contra o mesmo filtro, sobre os mesmos
+itens, sem separação alguma. Os dois intervalos ficam inteiramente abaixo do
+zero.
+
+Cada fator, aplicado sozinho, também reduziu o ataque nos dois modelos, mas o
+peso de cada um muda com o modelo. No Llama, a marcação seletiva responde por
+quase todo o ganho: $-0{,}075$ (IC de $-0{,}111$ a $-0{,}047$), contra
+$-0{,}019$ da delimitação (IC de $-0{,}041$ a $-0{,}003$). No gpt-oss, a
+delimitação é a mais forte, com $-0{,}107$ (IC de $-0{,}154$ a $-0{,}065$),
+e a marcação vem logo atrás, com $-0{,}082$ (IC de $-0{,}113$ a $-0{,}055$).
+
+Os efeitos principais do desenho fatorial, que usam as quatro condições de uma
+vez e por isso medem cada fator com mais precisão, confirmam a leitura e
+acrescentam uma diferença entre os modelos. No Llama, o efeito da marcação é
+de $-0{,}070$ (IC de $-0{,}101$ a $-0{,}046$), o da delimitação é pequeno, de
+$-0{,}014$ (IC de $-0{,}029$ a $-0{,}002$), e a interação é compatível com
+zero ($+0{,}011$, IC de $-0{,}011$ a $+0{,}033$): os dois fatores somam. No
+gpt-oss, os dois efeitos principais são claros, $-0{,}082$ para a delimitação
+(IC de $-0{,}119$ a $-0{,}050$) e $-0{,}057$ para a marcação (IC de
+$-0{,}077$ a $-0{,}040$), e a interação é positiva, de $+0{,}050$ (IC de
+$+0{,}013$ a $+0{,}087$): com a delimitação já presente, a marcação acrescenta
+menos do que acrescenta sozinha. A leitura mais econômica é que os dois pontos
+de intervenção corrigem falhas em parte diferentes: a delimitação organiza o
+que o filtro lê, a marcação transporta adiante o que ele descobriu. No modelo
+menor as duas falhas são independentes e os ganhos se somam; no maior, parte
+dos ataques que a delimitação passa a detectar é a mesma que a marcação
+neutralizaria, e a combinação rende menos que a soma, embora continue sendo a
+melhor das quatro condições.
+
+No SEP, cuja tarefa é justamente a de separar instrução de dado, os efeitos
+são menores, e quem os carrega é a marcação. O efeito principal da marcação é
+negativo e distinto de zero nas três linhas: $-0{,}020$ no Llama (IC de
+$-0{,}043$ a $-0{,}003$), $-0{,}065$ no gpt-oss (IC de $-0{,}103$ a
+$-0{,}032$) e $-0{,}086$ no filtro treinado (IC de $-0{,}130$ a $-0{,}051$).
+O da delimitação é nulo no Llama e no filtro treinado, e no gpt-oss tem o
+limite superior encostado no zero. A combinação reduziu o ataque em $0{,}029$
+no Llama (IC de $-0{,}055$ a $-0{,}009$) e em $0{,}086$ no gpt-oss (IC de
+$-0{,}127$ a $-0{,}049$). O contraste com o BIPIA é coerente com a natureza
+dos dois conjuntos: a sonda do SEP é uma instrução plausível embutida em dado
+legítimo, sem a assinatura léxica que torna um ataque do BIPIA reconhecível, e
+um filtro que decide por leitura tem menos de que se agarrar para bloquear.
+Como o filtro raramente aponta trecho no SEP (Seção~\ref{sec:conc_teto}), o
+ganho ali vem sobretudo do aviso de cautela que a condição acrescenta ao
+componente principal, e não das marcas.
+
+\section{A dimensão do efeito}\label{sec:conc_dimensao}
+
+Medido contra a referência sem filtro, o efeito da separação de canal é uma
+fração da proteção total, e essa fração depende do modelo. No gpt-oss-20b, o
+\textit{guardrail} clássico já derruba a taxa de sucesso do ataque em
+$0{,}560$ no BIPIA, e a separação de canal acrescenta a isso os $0{,}139$ da
+Seção~\ref{sec:conc_ganho}, levando a redução total a $0{,}699$. No
+Llama-3.1-8B a proporção é outra e mais favorável à tese: o filtro sem
+separação reduz $0{,}061$, e a versão com os dois fatores reduz $0{,}145$, ou
+seja, mais que o dobro.
+
+Esse par de números delimita bem o alcance da contribuição. Ter um filtro
+continua sendo a decisão de maior impacto. Separar os canais dentro do filtro é
+um refinamento barato que, no modelo menor, chega a duplicar a proteção que o
+filtro já oferecia.
+
+\section{O custo}\label{sec:conc_custo}
+
+Uma defesa que suprime o ataque às custas da tarefa legítima não serve, e aqui
+os dois modelos se separam pela magnitude. No gpt-oss-20b o custo de
+utilidade no BIPIA é pequeno e vem só da marcação: a delimitação não custou
+nada ($+0{,}001$, IC de $-0{,}005$ a $+0{,}008$), e a combinação custou
+$0{,}023$ (IC de $-0{,}050$ a $-0{,}007$), o mesmo que a marcação sozinha.
+No Llama-3.1-8B o custo é maior e vem dos dois fatores, por mecanismos
+diferentes. A combinação custou $0{,}082$ (IC de $-0{,}123$ a $-0{,}044$), o
+efeito principal da marcação é de $-0{,}064$ (IC de $-0{,}101$ a $-0{,}032$)
+e o da delimitação, de $-0{,}018$ (IC de $-0{,}039$ a $-0{,}002$).
+
+O custo da delimitação no Llama é de bloqueio: o sobre-bloqueio no BIPIA sobe
+de $0{,}021$ sob o \textit{prompt} simples para $0{,}067$ com delimitação,
+enquanto a fração de tarefas cumpridas entre os itens liberados não muda
+($0{,}576$ e $0{,}578$). O custo da marcação não vem das marcas nem do
+bloqueio. Os itens benignos que receberam marca tiveram a tarefa cumprida em
+$0{,}864$ das vezes sob marcação, acima da média; os liberados sem marca
+alguma, que são a grande maioria, caíram de $0{,}576$ para $0{,}485$. O que
+muda para eles é o aviso de cautela que a marcação acrescenta ao
+\textit{prompt} do componente principal, e o Apêndice~\ref{ape:exemplos}
+mostra o Llama recusando uma pergunta legítima, sobre um texto sem marca,
+depois de ler esse aviso. O gpt-oss-20b recebe o mesmo aviso e paga o mesmo
+tipo de custo, em escala muito menor ($0{,}661$ para $0{,}640$). O aviso é
+também parte da proteção, como mostra a Seção~\ref{sec:conc_teto}: o mesmo
+texto que torna o componente principal mais desconfiado diante do ataque o
+torna mais relutante diante da tarefa legítima.
+
+No NotInject, o conjunto construído para expor o sobre-bloqueio, nenhuma
+condição se afastou muito do filtro sem separação: o Llama ficou entre
+$0{,}079$ e $0{,}099$, com a delimitação reduzindo o sobre-bloqueio em vez de
+aumentá-lo, e o gpt-oss entre $0{,}044$ e $0{,}055$.
+
+A despesa aparece em \textit{tokens}, e é pequena diante da que já se paga por
+ter um filtro. As duas intervenções acrescentam texto ao \textit{prompt}, mas o
+filtro em si já duplica o número de chamadas ao modelo. O tempo de geração
+segue a mesma proporção, com a ressalva de que o provedor que atende cada
+chamada varia, e com ele o hardware.
+
+\section{O teto do método}\label{sec:conc_teto}
+
+A marcação seletiva só age sobre trechos que o filtro efetivamente apontou.
+Quando ele não aponta nada, não há o que marcar, e a condição degenera no
+\textit{prompt} simples. O alcance medido é modesto: no BIPIA, $0{,}069$ dos
+itens liberados receberam marca sob marcação isolada no Llama e $0{,}079$ sob
+a combinação, contra $0{,}041$ e $0{,}021$ no gpt-oss. No SEP, a combinação no
+Llama chegou a $0{,}112$ e a marcação isolada a $0{,}022$; nas linhas do
+gpt-oss, o alcance ficou abaixo de $0{,}01$.
+
+Onde há marca, ela funciona. No BIPIA, entre os ataques liberados com marca,
+a execução foi de $0{,}037$ no Llama e nula no gpt-oss sob marcação, contra
+$0{,}205$ e $0{,}738$ entre os ataques liberados sob o \textit{prompt}
+simples. O fator medido como marcação, porém, inclui também o aviso de
+cautela no \textit{prompt} do componente principal, presente em toda
+requisição da condição, com ou sem marca, e o aviso sozinho já muda o
+comportamento: entre os ataques liberados sem marca alguma, a execução cai de
+$0{,}205$ para $0{,}084$ no Llama e de $0{,}738$ para $0{,}617$ no gpt-oss.
+Parte do ganho atribuído à marcação vem, portanto, do aviso, e não das
+marcas, e o mesmo aviso é a fonte do custo de utilidade descrito na
+Seção~\ref{sec:conc_custo}. O desenho não separa as duas partes, porque o
+aviso só aparece junto com a marcação.
+
+O que limita a parte da marca não é a ideia de preservar e sinalizar, e sim a
+capacidade do filtro de localizar o trecho a sinalizar. Essa é uma limitação
+de componente, e não de arquitetura: um filtro que aponte melhor aproveita a
+mesma cadeia sem que nada mais precise mudar.
+
+\section{Comparação com o filtro treinado}\label{sec:conc_guards}
+
+O desenho incluiu o gpt-oss-safeguard, ajustado por \textit{fine-tuning} sobre
+o mesmo \textit{backbone} do gpt-oss-20b, no papel de filtro e sob as mesmas
+quatro condições. Isso transforma em medição direta o que de outra forma seria
+citação de número alheio, e permite duas leituras: entre as linhas, o que o
+treinamento acrescenta; dentro da linha treinada, o que a separação de canal
+acrescenta a um filtro que já foi ajustado.
+
+A segunda leitura é a que responde à pergunta de pesquisa, e responde
+afirmativamente. Sobre o filtro treinado, a taxa de sucesso do ataque no BIPIA
+cai de $0{,}374$ sob o \textit{prompt} simples para $0{,}235$ com delimitação e
+marcação, uma redução de $0{,}139$ (IC de $-0{,}181$ a $-0{,}106$), com as
+condições intermediárias em $0{,}314$ e $0{,}305$. A redução absoluta é a
+mesma do modelo aberto da família. A detecção acompanha: a taxa de detecção a
+1\% de falsos positivos sobe de $0{,}568$ para $0{,}675$. No SEP o ataque cai
+de $0{,}779$ para $0{,}692$, inteiramente pela marcação, e a utilidade não
+cai de forma relevante em nenhum dos dois: no BIPIA a combinação custou
+$0{,}015$ (IC de $-0{,}040$ a $-0{,}001$), e no SEP a utilidade subiu. O
+efeito da configuração, portanto, não depende de o filtro ser um modelo de uso
+geral.
+
+A primeira leitura contraria a expectativa de que treinar seja o caminho mais
+curto. Em todas as quatro condições o filtro treinado protegeu menos que o
+modelo aberto da mesma família: $0{,}374$ contra $0{,}235$ sob o
+\textit{prompt} simples, e $0{,}235$ contra $0{,}097$ na melhor configuração.
+A melhor configuração do modelo treinado apenas empata com o \textit{prompt}
+simples do modelo aberto.
+
+O resultado pede explicação, e os registros a fornecem. Os dados estão
+íntegros: a saída do filtro treinado foi válida em mais de 99,9\% das
+decisões, e, entre os ataques que ele deixou passar sob o \textit{prompt}
+simples, a fração executada pelo componente principal foi a mesma observada
+sem filtro ($0{,}796$ e $0{,}795$). Toda a diferença está na detecção. E a
+detecção falha por um motivo de tarefa, não de capacidade: o modelo foi
+ajustado para classificar conteúdo nocivo segundo a política escrita no
+\textit{prompt} de sistema, e a política recebida foram as mesmas linhas
+entregues a todas as condições. Um ataque do tipo ``acrescente um link'' não
+viola política de dano alguma, e o modelo o deixou passar. O SEP confirma a
+leitura: a sonda daquele \textit{benchmark} é uma instrução inofensiva embutida
+no dado, e o filtro treinado bloqueou $0$ das $1.500$ decisões sobre itens
+atacados sob o \textit{prompt} simples e $2$ com delimitação e marcação,
+enquanto o modelo aberto bloqueou $28$ e $78$. O NotInject mostra o outro lado
+da mesma moeda: itens benignos com vocabulário sensível também não são
+conteúdo nocivo, e ali o filtro treinado sobre-bloqueou menos ($0{,}016$
+contra $0{,}044$ sob o \textit{prompt} simples). Ele erra menos contra quem é
+inocente e detecta menos quem ataca, que é exatamente o perfil de um
+classificador de dano posto a procurar injeção.
+
+A leitura correta do conjunto é, portanto, mais estreita do que a frase
+``treinar não bastou'' sugere: um modelo geral com um \textit{prompt} dirigido
+à injeção superou, nesse papel, o classificador de dano da própria família, e a
+separação de canal melhorou os dois. Isso não estabelece um teto para o que um
+\textit{fine-tuning} dirigido à injeção alcançaria, como o DataFilter
+\cite{wang2025datafilter} ou o PromptShield \cite{jacob2025promptshield};
+esses não foram medidos, pelo motivo exposto na Seção~\ref{sec:conc_limitacoes}.
+
+\section{Limitações}\label{sec:conc_limitacoes}
+
+Quatro limitações restringem o alcance do que foi medido, e nenhuma delas foi
+descoberta depois do fato: todas são propriedades conhecidas do protocolo.
+
+A primeira é o julgamento do ataque. O casamento com a testemunha não distingue
+obedecer de citar: um modelo que reproduza o conteúdo externo ao resumi-lo pode
+fazer a testemunha aparecer sem jamais ter seguido a instrução. O viés é
+sistemático e empurra a favor da hipótese nula, o que torna as reduções
+relatadas conservadoras.
+
+A segunda é o significado de utilidade fora do BIPIA. SEP e NotInject não
+publicam resposta de referência, e ali a métrica exprime ``respondeu sem ter
+sido bloqueado'', não ``respondeu corretamente''. Comparações de utilidade entre
+\textit{benchmarks} não são legítimas, e o texto evitou fazê-las.
+
+A terceira é a instabilidade da decisão individual. Os números deste trabalho
+são médias de dez repetições, e os intervalos levam em conta a variação entre
+elas; a média, porém, esconde que a decisão sobre um mesmo item muda de uma
+execução para outra. No BIPIA, sob o \textit{prompt} simples, o filtro não
+tomou a mesma decisão nas dez repetições em $31\%$ dos itens no Llama e em
+$35\%$ no gpt-oss, contra $12\%$ no filtro treinado, que decide de forma mais
+estável, ainda que decida pior nesta tarefa. Um sistema em operação executa
+cada requisição uma vez, e o que ele entrega a um usuário é uma amostra dessa
+variação, não a média. A taxa de saída inválida do filtro, que chegou a
+$0{,}074$ no gpt-oss e é contabilizada de forma conservadora como não
+bloqueio, pertence à mesma família de ressalvas.
+
+A quarta é o alcance da comparação com modelos treinados. O filtro
+fine-tunado avaliado foi usado fora da tarefa para a qual foi ajustado, como
+discutido na Seção~\ref{sec:conc_guards}: ele classifica conteúdo nocivo, e a
+comparação mede o que a família oferece pronto, não o limite do
+\textit{fine-tuning} para injeção. Nenhuma defesa por remoção foi medida, e a
+razão é de disponibilidade: os detectores treinados especificamente para
+\textit{prompt injection} sobre o \textit{backbone} avaliado
+\cite{wang2025datafilter, geng2025pisanitizer, jacob2025promptshield} existem
+como pesos publicados, mas não são servidos por interface de API, e hospedá-los
+sairia do custo e da reprodutibilidade adotados. A comparação entre marcar e
+remover permanece, assim, argumentativa e apoiada na literatura, não medida
+nesta bateria.

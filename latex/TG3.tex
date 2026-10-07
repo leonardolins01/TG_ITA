@@ -1,0 +1,223 @@
+%%% Trabalho de Graduação
+%%% Separação entre Canal de Instrução e Canal de Dado em Guardrails de Entrada
+%%%
+%%% Formatação: classe ITA (ita.cls), baseada em book, uma coluna, A4 12 pt,
+%%% citação ABNT autor-data via abntcite + abnt/abnt-alf.bst. É o template
+%%% oficial de monografia do ITA; ita.cls, abnt/ e ita/ não devem ser editados.
+%%%
+%%% Compilação, de dentro de latex/. Os auxiliares (.aux, .bbl, .toc, .log...)
+%%% vão para build/ e só o TG3.pdf fica aqui.
+%%%   Git Bash (tem Perl, que o latexmk exige):
+%%%     latexmk TG3
+%%%   PowerShell (sem Perl no PATH, o latexmk não roda):
+%%%     pdflatex -aux-directory=build TG3; bibtex build/TG3;
+%%%     pdflatex -aux-directory=build TG3; pdflatex -aux-directory=build TG3;
+%%%     pdflatex -aux-directory=build TG3
+%%%   São quatro pdflatex, e não três: com a pasta build/ vazia, a terceira
+%%%   passada ainda deixa uma página errada no sumário.
+%%%
+%%% Os campos marcados com {CHAVES MAIÚSCULAS} abaixo precisam ser preenchidos
+%%% à mão antes da entrega.
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\documentclass[tg]{ita}    % ita.cls, baseada na classe padrão book
+
+% ita.cls (2006) redefine \addcontentsline e grava o marcador do PDF por conta
+% própria; o hyperref atual já o grava pelo gancho do comando, e cada capítulo
+% e seção saía em dobro no painel de marcadores. Esta é a definição do hyperref.
+\makeatletter
+\def\addcontentsline#1#2#3{\addtocontents{#1}{%
+  \protect\contentsline{#2}{#3}{\thepage}{\@currentHref}\protected@file@percent}}
+
+% Capa: a da classe, com o logo em PNG logo abaixo do nome do instituto e os
+% textos grandes um passo menores.
+\renewcommand{\maketgcover}{%
+  \pdfbookmark[0]{\namecover}{cover}
+  \thispagestyle{empty}
+  \hspace{-0.8cm}\fbox{\parbox[c][660pt][c]{\textwidth}{
+  \centering
+  {\large\textbf{\MakeUppercase{instituto tecnol\'{o}gico de aeron\'{a}utica}}}
+
+  \vspace{0.8cm}
+
+  \includegraphics[width=0.4\textwidth]{ita/ITA_logo.png}
+
+  \vspace*{\stretch{2}}
+
+  {\large\textbf{\@authorfirst\ \@authorlast}}
+
+  \vspace*{\stretch{1}}
+
+  \begin{spacing}{1.0}
+  {\large\textbf{\MakeUppercase{\@title}}}
+  \end{spacing}
+
+  \vspace*{\stretch{3}}
+
+  \begin{spacing}{1.0}
+  {\large \finalpaper \\ \@publyear}
+  \end{spacing}
+
+  \vspace*{\stretch{2}}
+
+  {\LARGE\textbf{\courseof\ \itaworkcourse}}
+
+  \vspace*{\stretch{1}}
+  \vfill
+  }}
+}
+\makeatother
+
+% Latin Modern no lugar do `ae` que a classe carrega: o `ae` monta cada letra
+% acentuada com dois glifos, e o PDF não era pesquisável nem copiável com acento.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+% Folga extra só para parágrafos que, sem ela, estourariam a margem.
+\setlength{\emergencystretch}{1.5em}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfig}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{amsthm}
+\usepackage{url}
+\usepackage{appendix}
+\usepackage{lscape}
+\usepackage{multicol}
+\usepackage{cancel}
+\usepackage{lettrine}
+\usepackage{placeins}
+\usepackage{booktabs}
+
+% Específicos deste trabalho: a figura do fluxo é desenhada em TikZ, e as
+% figuras de resultado são gravadas em figs/ por experiments/makeFigures.py.
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit}
+\graphicspath{{figs/}{./}}
+
+% Apêndice A: caixas com o texto literal de cada etapa do fluxo. `breakable`
+% porque alguns registros atravessam a página.
+\usepackage[most]{tcolorbox}
+\newtcolorbox{bloco}[1]{breakable, enhanced, colback=black!3, colframe=black!45,
+  fonttitle=\bfseries\small, title=#1, left=4pt, right=4pt, top=4pt, bottom=4pt,
+  before skip=6pt, after skip=10pt}
+\newcommand{\etapa}[1]{\par\smallskip\noindent\textbf{\small #1}\par\nopagebreak}
+% Apêndice B: uma conta alinhada dentro da caixa, sem o espaço de uma equação exibida.
+\newcommand{\conta}[1]{\par\nopagebreak\vspace{3pt}\noindent\hspace*{1.5em}%
+  $\displaystyle\begin{aligned}[t]#1\end{aligned}$\par}
+\newenvironment{literal}{\shorthandoff{"}\ttfamily\small\raggedright\setlength{\parindent}{0pt}}{\par}
+
+% Espaçamento padrão de todo o documento
+\onehalfspacing
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% Identificações
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\course{Engenharia da Computação}
+
+% Autor do trabalho
+\authorgender{masc}
+\author{Leonardo}{Lins}
+\itaauthoraddress{{ENDEREÇO DO AUTOR}}{{CEP}}{São José dos Campos--SP}
+
+% Título
+\title{Separação entre Canal de Instrução e Canal de Dado em Guardrails de
+Entrada para Componentes de LLM}
+
+% Orientador
+\advisorgender{masc}
+\advisor{Prof.~Dr.}{Cesar Augusto Cavalheiro Marcondes}{ITA}
+
+% Coorientador: não há. Mantenha ambas as linhas comentadas.
+%\coadvisorgender{masc}
+%\coadvisor{Prof.~Dr.}{}{}
+
+% Pró-reitor da Pós-graduação
+\bossgender{masc}
+\boss{Prof.~Dr.}{{PRÓ-REITOR DE PÓS-GRADUAÇÃO}}
+
+% Coordenador do curso (no caso de TG)
+\bosscoursegender{masc}
+\bosscourse{Prof.~Dr.}{{COORDENADOR DO CURSO}}
+
+% Palavras-chave informadas pela Biblioteca, usadas na ficha catalográfica
+\kwcip{Segurança de computadores}
+\kwcip{Processamento de linguagem natural}
+\kwcip{Aprendizado de máquina}
+
+% Banca examinadora
+\examiner{Prof.~Dr.}{{MEMBRO 1 DA BANCA}}{Presidente}{ITA}
+\examiner{Prof.~Dr.}{{MEMBRO 2 DA BANCA}}{}{ITA}
+\examiner{Prof.~Dr.}{{MEMBRO 3 DA BANCA}}{}{ITA}
+
+% Data da defesa (mês em minúsculo, por ser trabalho em português)
+\date{{DD}}{{mês}}{2026}
+
+% Número CDU, solicitado à biblioteca
+\cdu{{CDU}}
+
+% Metadados do PDF (a classe não os preenche)
+\hypersetup{
+  pdftitle={Separação entre Canal de Instrução e Canal de Dado em Guardrails
+    de Entrada para Componentes de LLM},
+  pdfauthor={Leonardo Lins},
+  pdfsubject={Trabalho de Graduação, Instituto Tecnológico de Aeronáutica},
+  pdfkeywords={prompt injection; guardrail de entrada; separação instrução-dado}}
+
+\frontmatter
+
+\begin{document}
+\input{PreTextuais/main}
+
+\mainmatter
+% Os capítulos começam aqui
+
+\chapter{Introdução}\label{cap:introducao}
+\input{Cap1/cap1}
+
+\chapter{Fundamentação Teórica}\label{cap:fundamentacao}
+\input{Cap2/cap2}
+
+\chapter{Metodologia}\label{cap:metodologia}
+\input{Cap3/cap3}
+
+\chapter{Resultados}\label{cap:resultados}
+\input{Cap4/cap4}
+
+\chapter{Conclusão}\label{cap:conclusao}
+\input{Cap5/cap5}
+
+% REFERÊNCIAS BIBLIOGRÁFICAS
+% O abntcite emite \bibliographystyle{abnt/abnt-alf} sozinho; não declare outro.
+\renewcommand\bibname{\itareferencesnamebabel}
+\bibliography{Referencias/refs}
+
+% TG_preliminar.tex define \TGpreliminar e termina aqui, sem apêndices e FRD
+\ifdefined\TGpreliminar\else
+% Apêndices (antes da FRD, que precisa ser a última página)
+\appendix
+\chapter{Exemplos de execução}\label{ape:exemplos}
+\input{ApeA/apendiceA}
+
+\chapter{Cálculo da incerteza}\label{ape:incerteza}
+\input{ApeB/apendiceB}
+
+% Folha de Registro do Documento
+\FRDitadata{{DD de mês de 2026}}
+\FRDitadocnro{{DCTA/ITA/TG-000/2026}}
+\FRDitaorgaointerno{Instituto Tecnológico de Aeronáutica -- ITA}
+\FRDitapalavrasautor{Prompt injection; Guardrail de entrada; Separação instrução-dado}
+\FRDitapalavrasresult{Segurança de computadores; Processamento de linguagem natural; Aprendizado de máquina}
+\FRDitapalavraapresentacao{Trabalho de Graduação, ITA, São José dos Campos, 2026. \NumPenultimaPagina\ páginas.}
+\FRDitaresumo{\input{PreTextuais/resumo}}
+%  Primeiro parâmetro: Nacional ou Internacional -- N/I
+%  Segundo parâmetro: Ostensivo, Reservado, Confidencial ou Secreto -- O/R/C/S
+\FRDitaOpcoes{N}{O}
+\itaFRD
+\fi
+
+\end{document}

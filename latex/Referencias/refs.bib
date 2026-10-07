@@ -1,0 +1,238 @@
+% =====================================================================
+%  Bibliografia do TG3
+%  Foco: separacao entre canal de instrucao e canal de dado aplicada a
+%  guardrails de entrada (spotlighting no filtro + marcacao seletiva).
+% =====================================================================
+
+% ---------- Fundamentos: LLM como componente e arquitetura ----------
+@article{weber2024llm,
+  author  = {Irene Weber},
+  title   = {Large Language Models as Software Components: A Taxonomy for {LLM}-Integrated Applications},
+  journal = {arXiv preprint arXiv:2406.10300},
+  year    = {2024}
+}
+
+@inproceedings{vaswani2017attention,
+  author    = {Ashish Vaswani and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and {\L}ukasz Kaiser and Illia Polosukhin},
+  title     = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems 30},
+  year      = {2017}
+}
+
+@inproceedings{ouyang2022instructgpt,
+  author    = {Long Ouyang and Jeffrey Wu and Xu Jiang and Diogo Almeida and Carroll L. Wainwright and Pamela Mishkin and Chong Zhang and Sandhini Agarwal and Katarina Slama and Alex Ray and others},
+  title     = {Training Language Models to Follow Instructions with Human Feedback},
+  booktitle = {Advances in Neural Information Processing Systems 35},
+  year      = {2022}
+}
+
+@inproceedings{lewis2020rag,
+  author    = {Patrick Lewis and Ethan Perez and Aleksandra Piktus and Fabio Petroni and Vladimir Karpukhin and Naman Goyal and Heinrich K{\"u}ttler and Mike Lewis and Wen-tau Yih and Tim Rockt{\"a}schel and Sebastian Riedel and Douwe Kiela},
+  title     = {Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
+  booktitle = {Advances in Neural Information Processing Systems 33},
+  year      = {2020}
+}
+
+% ---------- Ataques ----------
+@inproceedings{perez2022ignore,
+  author    = {F{\'a}bio Perez and Ian Ribeiro},
+  title     = {Ignore Previous Prompt: Attack Techniques For Language Models},
+  booktitle = {NeurIPS Workshop on ML Safety},
+  year      = {2022}
+}
+
+@inproceedings{liu2024formalizing,
+  author    = {Yupei Liu and Yuqi Jia and Runpeng Geng and Jinyuan Jia and Neil Zhenqiang Gong},
+  title     = {Formalizing and Benchmarking Prompt Injection Attacks and Defenses},
+  booktitle = {33rd USENIX Security Symposium},
+  year      = {2024}
+}
+
+@inproceedings{greshake2023ipi,
+  author    = {Kai Greshake and Sahar Abdelnabi and Shailesh Mishra and Christoph Endres and Thorsten Holz and Mario Fritz},
+  title     = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
+  booktitle = {Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security},
+  pages     = {79--90},
+  year      = {2023}
+}
+
+@article{hackett2025bypassing,
+  author  = {William Hackett and Lewis Birch and Stefan Trawicki and Neeraj Suri and Peter Garraghan},
+  title   = {Bypassing {LLM} Guardrails: An Empirical Analysis of Evasion Attacks against Prompt Injection and Jailbreak Detection Systems},
+  journal = {arXiv preprint arXiv:2504.11168},
+  year    = {2025}
+}
+
+% ---------- Separacao entre instrucao e dado ----------
+@inproceedings{zverev2025separation,
+  author    = {Egor Zverev and Sahar Abdelnabi and Soroush Tabesh and Mario Fritz and Christoph H. Lampert},
+  title     = {Can {LLMs} Separate Instructions From Data? And What Do We Even Mean By That?},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2025}
+}
+
+@inproceedings{zverev2026aside,
+  author    = {Egor Zverev and Evgenii Kortukov and Alexander Panfilov and Alexandra Volkova and Soroush Tabesh and Sebastian Lapuschkin and Wojciech Samek and Christoph H. Lampert},
+  title     = {{ASIDE}: Architectural Separation of Instructions and Data in Language Models},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026}
+}
+
+% ---------- Marcacao estrutural (spotlighting) ----------
+@inproceedings{hines2024spotlighting,
+  author    = {Keegan Hines and Gary Lopez and Matthew Hall and Federico Zarfati and Yonatan Zunger and Emre K{\i}c{\i}man},
+  title     = {Defending Against Indirect Prompt Injection Attacks With Spotlighting},
+  booktitle = {Conference on Applied Machine Learning for Information Security (CAMLIS)},
+  year      = {2024}
+}
+
+@article{xie2023selfreminder,
+  author  = {Yueqi Xie and Jingwei Yi and Jiawei Shao and Justin Curl and Lingjuan Lyu and Qifeng Chen and Xing Xie and Fangzhao Wu},
+  title   = {Defending {ChatGPT} against Jailbreak Attack via Self-Reminders},
+  journal = {Nature Machine Intelligence},
+  volume  = {5},
+  number  = {12},
+  pages   = {1486--1496},
+  year    = {2023}
+}
+
+% ---------- Guardrails de entrada e guard models ----------
+@inproceedings{dong2024guardrails,
+  author    = {Yi Dong and Ronghui Mu and Gaojie Jin and Yi Qi and Jinwei Hu and Xingyu Zhao and Jie Meng and Wenjie Ruan and Xiaowei Huang},
+  title     = {Position: Building Guardrails for Large Language Models Requires Systematic Design},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning (ICML)},
+  year      = {2024}
+}
+
+@article{inan2023llamaguard,
+  author  = {Hakan Inan and Kartikeya Upasani and Jianfeng Chi and Rashi Rungta and Krithika Iyer and Yuning Mao and Michael Tontchev and Qing Hu and Brian Fuller and Davide Testuggine and Madian Khabsa},
+  title   = {Llama Guard: {LLM}-based Input-Output Safeguard for Human-AI Conversations},
+  journal = {arXiv preprint arXiv:2312.06674},
+  year    = {2023}
+}
+
+@article{zeng2024shieldgemma,
+  author  = {Wenjun Zeng and Yuchi Liu and Ryan Mullins and Ludovic Peran and Joe Fernandez and Hamza Harkous and Karthik Narasimhan and Drew Proud and Piyush Kumar and Bhaktipriya Radharapu and Olivia Sturman and Oscar Wahltinez},
+  title   = {{ShieldGemma}: Generative {AI} Content Moderation Based on {Gemma}},
+  journal = {arXiv preprint arXiv:2407.21772},
+  year    = {2024}
+}
+
+@article{zhao2025qwen3guard,
+  author  = {Haiquan Zhao and Chenhan Yuan and Fei Huang and others},
+  title   = {{Qwen3Guard} Technical Report},
+  journal = {arXiv preprint arXiv:2510.14276},
+  year    = {2025}
+}
+
+@article{chennabasappa2025llamafirewall,
+  author  = {Sahana Chennabasappa and Cyrus Nikolaidis and Daniel Song and David Molnar and Stephanie Ding and Shengye Wan and Spencer Whitman and Lauren Deason and Nicholas Doucette and Abraham Montilla and others},
+  title   = {{LlamaFirewall}: An Open Source Guardrail System for Building Secure {AI} Agents},
+  journal = {arXiv preprint arXiv:2505.03574},
+  year    = {2025}
+}
+
+% ---------- Filtros que sanitizam a entrada (trabalhos mais proximos) ----------
+@article{shi2025promptarmor,
+  author  = {Tianneng Shi and Kaijie Zhu and Zhun Wang and Yuqi Jia and Will Cai and Weida Liang and Haonan Wang and Hend Alzahrani and Joshua Lu and Kenji Kawaguchi and Basel Alomair and Xuandong Zhao and William Yang Wang and Neil Gong and Wenbo Guo and Dawn Song},
+  title   = {{PromptArmor}: Simple yet Effective Prompt Injection Defenses},
+  journal = {arXiv preprint arXiv:2507.15219},
+  year    = {2025}
+}
+
+@article{wang2025datafilter,
+  author  = {Yizhu Wang and Sizhe Chen and Raghad Alkhudair and Basel Alomair and David Wagner},
+  title   = {Defending Against Prompt Injection with {DataFilter}},
+  journal = {arXiv preprint arXiv:2510.19207},
+  year    = {2025}
+}
+
+@article{geng2025pisanitizer,
+  author  = {Runpeng Geng and Yanting Wang and Chenlong Yin and Minhao Cheng and Ying Chen and Jinyuan Jia},
+  title   = {{PISanitizer}: Preventing Prompt Injection to Long-Context {LLMs} via Prompt Sanitization},
+  journal = {arXiv preprint arXiv:2511.10720},
+  year    = {2025}
+}
+
+% ---------- Defesas por treinamento e por arquitetura de sistema (contraste) ----------
+@inproceedings{chen2025struq,
+  author    = {Sizhe Chen and Julien Piet and Chawin Sitawarin and David Wagner},
+  title     = {{StruQ}: Defending Against Prompt Injection with Structured Queries},
+  booktitle = {34th USENIX Security Symposium},
+  year      = {2025}
+}
+
+@inproceedings{chen2025secalign,
+  author    = {Sizhe Chen and Arman Zharmagambetov and Saeed Mahloujifar and Kamalika Chaudhuri and David Wagner and Chuan Guo},
+  title     = {{SecAlign}: Defending Against Prompt Injection with Preference Optimization},
+  booktitle = {ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year      = {2025}
+}
+
+@article{chen2025metasecalign,
+  author  = {Sizhe Chen and Arman Zharmagambetov and David Wagner and Chuan Guo},
+  title   = {Meta {SecAlign}: A Secure Foundation {LLM} Against Prompt Injection Attacks},
+  journal = {arXiv preprint arXiv:2507.02735},
+  year    = {2025}
+}
+
+@article{wallace2024hierarchy,
+  author  = {Eric Wallace and Kai Xiao and Reimar Leike and Lilian Weng and Johannes Heidecke and Alex Beutel},
+  title   = {The Instruction Hierarchy: Training {LLMs} to Prioritize Privileged Instructions},
+  journal = {arXiv preprint arXiv:2404.13208},
+  year    = {2024}
+}
+
+@article{debenedetti2025camel,
+  author  = {Edoardo Debenedetti and Ilia Shumailov and Tianqi Fan and Jamie Hayes and Nicholas Carlini and Daniel Fabian and Christoph Kern and Chongyang Shi and Andreas Terzis and Florian Tram{\`e}r},
+  title   = {Defeating Prompt Injections by Design},
+  journal = {arXiv preprint arXiv:2503.18813},
+  year    = {2025}
+}
+
+@article{beurerkellner2025patterns,
+  author  = {Luca Beurer-Kellner and Beat Buesser and Ana-Maria Cre{\c{t}}u and Edoardo Debenedetti and Daniel Dobos and Daniel Fabian and Marc Fischer and David Froelicher and Kathrin Grosse and Daniel Naeff and Ezinwanne Ozoani and Andrew Paverd and Florian Tram{\`e}r and V{\'a}clav Volhejn},
+  title   = {Design Patterns for Securing {LLM} Agents against Prompt Injections},
+  journal = {arXiv preprint arXiv:2506.08837},
+  year    = {2025}
+}
+
+% ---------- Benchmarks e metricas ----------
+@inproceedings{yi2025bipia,
+  author    = {Jingwei Yi and Yueqi Xie and Bin Zhu and Emre Kiciman and Guangzhong Sun and Xing Xie and Fangzhao Wu},
+  title     = {Benchmarking and Defending Against Indirect Prompt Injection Attacks on Large Language Models},
+  booktitle = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining},
+  year      = {2025},
+  doi       = {10.1145/3690624.3709179}
+}
+
+@article{li2024injecguard,
+  author  = {Hao Li and Xiaogeng Liu and Chaowei Xiao},
+  title   = {{InjecGuard}: Benchmarking and Mitigating Over-defense in Prompt Injection Guardrail Models},
+  journal = {arXiv preprint arXiv:2410.22770},
+  year    = {2024}
+}
+
+@inproceedings{jacob2025promptshield,
+  author    = {Dennis Jacob and Hend Alzahrani and Zhanhao Hu and Basel Alomair and David Wagner},
+  title     = {{PromptShield}: Deployable Detection for Prompt Injection Attacks},
+  booktitle = {Proceedings of the Fifteenth ACM Conference on Data and Application Security and Privacy (CODASPY)},
+  year      = {2025}
+}
+
+@inproceedings{debenedetti2024agentdojo,
+  author    = {Edoardo Debenedetti and Jie Zhang and Mislav Balunovi{\'c} and Luca Beurer-Kellner and Marc Fischer and Florian Tram{\`e}r},
+  title     = {{AgentDojo}: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for {LLM} Agents},
+  booktitle = {Advances in Neural Information Processing Systems, Datasets and Benchmarks Track},
+  year      = {2024}
+}
+
+@article{efron1987better,
+  author  = {Bradley Efron},
+  title   = {Better Bootstrap Confidence Intervals},
+  journal = {Journal of the American Statistical Association},
+  volume  = {82},
+  number  = {397},
+  pages   = {171--185},
+  year    = {1987}
+}

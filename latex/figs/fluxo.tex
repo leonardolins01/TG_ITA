@@ -1,0 +1,56 @@
+% Fluxo da informação: filtro com canais separados -> marcação seletiva ->
+% componente principal -> ponto de medição. Incluído por TG3.tex via \input.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  node distance=6mm,
+  caixa/.style={draw, rounded corners=2pt, align=center, inner sep=3pt,
+                minimum height=7mm, text width=21mm},
+  canal/.style={draw, dashed, align=center, inner sep=2.5pt,
+                minimum height=6mm, text width=25mm},
+  grupo/.style={draw, thick, rounded corners=3pt, inner sep=4pt},
+  medida/.style={draw, thick, rounded corners=2pt, align=center, inner sep=3pt,
+                 minimum height=7mm, text width=25mm},
+  seta/.style={-latex, thick},
+]
+
+% ---- Entradas -------------------------------------------------------------
+\node[caixa] (conf)   {Instruções do desenvolvedor\\(confiável)};
+\node[caixa, below=4mm of conf] (naoconf) {Requisição do usuário\\(não confiável)};
+
+% ---- Filtro: dois canais separados ---------------------------------------
+\node[canal, right=12mm of conf, yshift=0mm] (cinstr)
+      {\textbf{canal de instrução}\\política de classificação};
+\node[canal, below=3mm of cinstr] (cdado)
+      {\textbf{canal de dado}\\delimitado em \texttt{<data>}};
+\node[grupo, fit=(cinstr)(cdado), label={[font=\scriptsize\bfseries]above:Filtro de entrada (modelo aberto)}] (filtro) {};
+
+% ---- Saída do filtro ------------------------------------------------------
+\node[caixa, right=11mm of filtro, text width=19mm] (decisao)
+      {Decisão\\\emph{bloquear} / \emph{passar}};
+\node[caixa, right=7mm of decisao, text width=23mm] (marca)
+      {Marcação seletiva\\dos trechos suspeitos (\texttt{\^{}})};
+
+% ---- Componente principal e medição --------------------------------------
+\node[caixa, right=7mm of marca, text width=21mm] (principal)
+      {Componente principal\\(\emph{backend} LLM)};
+\node[medida, right=7mm of principal] (medida)
+      {Medição do desfecho\\ASR, utilidade,\\FN, FP};
+
+% ---- Arestas --------------------------------------------------------------
+\draw[seta] (conf.east)    -- ++(4mm,0) |- (cinstr.west);
+\draw[seta] (naoconf.east) -- ++(4mm,0) |- (cdado.west);
+\draw[seta] (filtro.east)  -- (decisao.west);
+\draw[seta] (decisao.east) -- node[above, font=\scriptsize] {passa} (marca.west);
+\draw[seta] (marca.east)   -- (principal.west);
+\draw[seta] (principal.east) -- node[above, font=\scriptsize] {resposta} (medida.west);
+
+% bloqueio: encerra o fluxo
+\node[below=7mm of decisao, font=\scriptsize] (fim) {fim do fluxo};
+\draw[seta] (decisao.south) -- node[right, font=\scriptsize] {bloqueia} (fim.north);
+\draw[seta] (fim.east) -| ([xshift=-3mm]medida.south);
+
+% instrução de leitura da marcação
+\draw[seta, dotted] (marca.north) -- ++(0,5mm)
+      -| node[pos=0.25, above, font=\scriptsize] {instrução de cautela} (principal.north);
+
+\end{tikzpicture}

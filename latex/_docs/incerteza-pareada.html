@@ -1,0 +1,397 @@
+<title>Incerteza pareada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+
+<style>
+:root{
+  --bg:#f3f5f3; --surface:#ffffff; --surface-2:#e9edeb;
+  --ink:#171b1a; --ink-2:#3b4442; --muted:#67716e;
+  --rule:#d4dbd8; --rule-strong:#b3bdb9;
+  --new:#1c6272; --new-soft:#dcecef;
+  --old:#a86a22; --old-soft:#f6ead9;
+  --disc:#c7e3e8; --zero:#8c3b3b;
+  --hl:#fff3c4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#121615; --surface:#1a1f1e; --surface-2:#232a28;
+    --ink:#e6ebe9; --ink-2:#b8c2bf; --muted:#8a9592;
+    --rule:#2b3331; --rule-strong:#3c4643;
+    --new:#72bccb; --new-soft:#173338;
+    --old:#d9a15a; --old-soft:#33260f;
+    --disc:#1f4148; --zero:#d98787; --hl:#3a3413;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#121615; --surface:#1a1f1e; --surface-2:#232a28;
+  --ink:#e6ebe9; --ink-2:#b8c2bf; --muted:#8a9592;
+  --rule:#2b3331; --rule-strong:#3c4643;
+  --new:#72bccb; --new-soft:#173338;
+  --old:#d9a15a; --old-soft:#33260f;
+  --disc:#1f4148; --zero:#d98787; --hl:#3a3413;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;font-size:16.5px;line-height:1.64;padding-inline:18px;padding-block:0}
+.wrap{max-width:760px;margin:0 auto;padding-block:38px 80px}
+h1,h2,h3,.label,th,.k,button,.chip,.toc a{font-family:"IBM Plex Sans Condensed","Arial Narrow",sans-serif}
+h1{font-size:clamp(1.9rem,1.4rem + 2vw,2.55rem);line-height:1.1;font-weight:700;letter-spacing:-.015em;margin:0 0 .6rem;text-wrap:balance}
+h2{font-size:1.3rem;font-weight:600;margin:0;text-wrap:balance}
+h3{font-size:1.02rem;font-weight:600;margin:1.2rem 0 .35rem}
+p{margin:0 0 .95rem}
+.label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.08rem;color:var(--ink-2);max-width:64ch}
+code,.num{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-size:.86em;font-variant-numeric:tabular-nums}
+header{border-bottom:2px solid var(--ink);padding-bottom:1.2rem}
+section{margin-top:2.7rem;scroll-margin-top:1rem}
+.sh{display:flex;gap:.8rem;align-items:baseline;border-top:1px solid var(--rule-strong);padding-top:.9rem;margin-bottom:.8rem}
+.sh .n{font-family:"IBM Plex Mono",monospace;color:var(--new);font-size:.9rem;min-width:1.6rem}
+.new{color:var(--new);font-weight:600}.old{color:var(--old);font-weight:600}
+:focus-visible{outline:2px solid var(--new);outline-offset:2px}
+.toc{display:grid;grid-template-columns:repeat(2,1fr);gap:.2rem 1.4rem;margin:1rem 0 0;padding:0;list-style:none;font-size:.9rem}
+@media (max-width:560px){.toc{grid-template-columns:1fr}}
+.toc a{color:var(--ink-2);text-decoration:none}.toc a:hover{color:var(--new)}
+.toc .n{font-family:"IBM Plex Mono",monospace;color:var(--muted);margin-right:.35rem}
+
+/* contas */
+.calc{font-family:"IBM Plex Mono",monospace;font-size:.84rem;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:.7rem .85rem;margin:.6rem 0 1rem;overflow-x:auto;white-space:pre;line-height:1.7}
+.calc .c{color:var(--muted)}
+.calc b{color:var(--new);font-weight:500}
+.formula{font-family:"IBM Plex Mono",monospace;font-size:.92rem;background:var(--surface-2);border-radius:4px;padding:.6rem .8rem;margin:.6rem 0 1rem;overflow-x:auto;white-space:pre;line-height:1.6}
+.box{background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:.9rem 1rem;margin:.8rem 0 1rem}
+.note{border-left:3px solid var(--rule-strong);padding:.15rem 0 .15rem .9rem;color:var(--ink-2);font-size:.95rem;margin:1rem 0}
+.note.key{border-left-color:var(--new)}
+.note.warn{border-left-color:var(--old)}
+
+/* tabelas */
+.tw{overflow-x:auto;margin:.6rem 0 1rem}
+.tbl{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--surface)}
+.tbl th,.tbl td{padding:.42rem .6rem;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+.tbl th{font-size:.73rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tbl td.r,.tbl th.r{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.tbl tr:last-child td{border-bottom:0}
+.cross{border-collapse:collapse;font-size:.92rem;background:var(--surface)}
+.cross th,.cross td{border:1px solid var(--rule);padding:.45rem .7rem;text-align:center}
+.cross th{font-size:.76rem;font-weight:600;color:var(--muted);background:var(--surface-2)}
+.cross td.d{background:var(--disc);font-weight:600}
+.cross td.m{font-family:"IBM Plex Mono",monospace;color:var(--muted)}
+
+/* miniatura */
+.items{display:grid;grid-template-columns:auto repeat(6,1fr);gap:4px;max-width:470px;margin:.8rem 0 1rem;align-items:center}
+.items .k{font-size:.8rem;color:var(--muted);padding-right:.5rem;white-space:nowrap}
+.items .h{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--muted);text-align:center}
+.cell{height:32px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:.78rem;border:1px solid var(--rule)}
+.cell.y{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cell.n{background:var(--surface);color:var(--muted)}
+.cell.disc{outline:2px solid var(--new);outline-offset:1px}
+
+/* simulador */
+.lab{background:var(--surface);border:1px solid var(--rule-strong);border-radius:6px;padding:1rem 1.05rem 1.1rem}
+.ctrls{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem 1rem;margin-bottom:.9rem}
+@media (max-width:560px){.ctrls{grid-template-columns:1fr}}
+.ctrl label{display:flex;justify-content:space-between;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:.85rem;color:var(--ink-2)}
+.ctrl label b{font-family:"IBM Plex Mono",monospace;font-weight:500;color:var(--ink)}
+.ctrl input{width:100%;accent-color:var(--new)}
+.presets{display:flex;flex-wrap:wrap;gap:.4rem;margin:.1rem 0 .8rem}
+button{font-size:.8rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--rule-strong);border-radius:3px;padding:.28rem .6rem;cursor:pointer}
+button:hover{border-color:var(--new)}
+svg text{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--muted)}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem}
+@media (max-width:560px){.readout{grid-template-columns:1fr}}
+.ro{border-left:3px solid var(--new);background:var(--new-soft);padding:.5rem .7rem;border-radius:0 3px 3px 0}
+.ro.b{border-left-color:var(--old);background:var(--old-soft)}
+.ro .v{font-family:"IBM Plex Mono",monospace;font-size:1rem}
+details{margin-top:.8rem}
+summary{cursor:pointer;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:.92rem;color:var(--new)}
+.chip{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.08rem .4rem;border-radius:2px;background:var(--new-soft);color:var(--new)}
+.chip.o{background:var(--old-soft);color:var(--old)}
+dl.gl{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;font-size:.93rem}
+dl.gl dt{font-family:"IBM Plex Mono",monospace;color:var(--new)}
+dl.gl dd{margin:0;color:var(--ink-2)}
+footer{margin-top:3rem;border-top:1px solid var(--rule);padding-top:1rem;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:.82rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="label">TG · Metodologia e Resultados</div>
+  <h1>Incerteza pareada</h1>
+  <p class="lede">Como o trabalho calcula, com um único método, o bootstrap BCa, a incerteza das taxas, das diferenças entre condições e dos efeitos do 2×2, sobre as dez repetições da bateria. Cada número que aparece aqui vem de uma conta mostrada na própria página, a partir dos anteriores; nada é jogado pronto.</p>
+  <ul class="toc">
+    <li><a href="#s1"><span class="n">1</span>O que é um intervalo de confiança</a></li>
+    <li><a href="#s2"><span class="n">2</span>A curva normal e o número 1,96</a></li>
+    <li><a href="#s3"><span class="n">3</span>Uma taxa e o seu erro-padrão</a></li>
+    <li><a href="#s4"><span class="n">4</span>Duas condições nos mesmos itens</a></li>
+    <li><a href="#s5"><span class="n">5</span>A variância de uma diferença</a></li>
+    <li><a href="#s6"><span class="n">6</span>Os efeitos do 2×2</a></li>
+    <li><a href="#s7"><span class="n">7</span>O intervalo BCa, conta por conta</a></li>
+    <li><a href="#s8"><span class="n">8</span>Quando não há intervalo</a></li>
+    <li><a href="#s9"><span class="n">9</span>Dez repetições</a></li>
+    <li><a href="#s10"><span class="n">10</span>Como ler as figuras</a></li>
+    <li><a href="#s11"><span class="n">11</span>Símbolos</a></li>
+  </ul>
+</header>
+
+<!-- 1 ------------------------------------------------------------------ -->
+<section id="s1">
+  <div class="sh"><span class="n">1</span><h2>O que é um intervalo de confiança</h2></div>
+  <p>O trabalho não mede a taxa de sucesso do ataque "de verdade" de uma defesa; mede a taxa numa <b>amostra</b> de itens, por exemplo 150 itens do BIPIA. Com outros 150 itens, sairia outro número. O intervalo de confiança responde: <b>que faixa de valores verdadeiros é compatível com o que se viu nesta amostra?</b></p>
+  <p>"95%" é uma promessa sobre o procedimento: se o experimento fosse repetido muitas vezes, cada vez com uma amostra nova, e em cada uma se calculasse o intervalo do mesmo jeito, o intervalo conteria o valor verdadeiro em 95% das repetições. Essa frequência se chama <b>cobertura</b>, e é por ela que se julga se um método de intervalo é bom: a seção 8 mostra onde o bootstrap a perde.</p>
+</section>
+
+<!-- 2 ------------------------------------------------------------------ -->
+<section id="s2">
+  <div class="sh"><span class="n">2</span><h2>A curva normal e o número 1,96</h2></div>
+  <p>O BCa usa a <b>distribuição normal padrão</b>, a curva em forma de sino centrada em 0 e com desvio-padrão 1. Duas funções dela aparecem adiante:</p>
+  <ul>
+    <li><b>Φ(x)</b>: a fração da área da curva à esquerda de x. Φ(0) = 0,5, porque metade da curva está à esquerda do centro.</li>
+    <li><b>Φ⁻¹(q)</b>, a inversa: o ponto x que deixa uma fração q da área à esquerda. Φ⁻¹(0,5) = 0.</li>
+  </ul>
+  <p>Para um intervalo de 95%, sobram 5% fora dele, divididos em 2,5% em cada cauda. O ponto que deixa 97,5% à esquerda é</p>
+  <div class="calc">z = Φ⁻¹(0,975) = <b>1,959964</b>        <span class="c">(arredondado: 1,96)</span>
+</div>
+  <p>É esse número que o BCa usa para corrigir os seus pontos de corte (seção 7). Não há nada de especial nele além de ser o "95%" da curva normal.</p>
+</section>
+
+<!-- 3 ------------------------------------------------------------------ -->
+<section id="s3">
+  <div class="sh"><span class="n">3</span><h2>Uma taxa e o seu erro-padrão</h2></div>
+  <p>Exemplo que acompanha a página inteira: numa comparação de utilidade do BIPIA, a condição testada cumpriu a tarefa em <b>73 de 150</b> itens benignos, e o <i>prompt</i> simples em <b>80 de 150</b>. (De onde vêm 73 e 80 está na seção 4.)</p>
+  <p>A taxa estimada é só a fração:</p>
+  <div class="calc">p₁ = 73 / 150 = <b>0,486667</b>        <span class="c">condição testada</span>
+p₂ = 80 / 150 = <b>0,533333</b>        <span class="c">prompt simples</span></div>
+  <p>O <b>erro-padrão</b> diz o quanto essa taxa variaria de amostra para amostra. Para uma proporção, a teoria dá √(p(1 − p)/n):</p>
+  <div class="calc">p₁(1 − p₁) = 0,486667 × 0,513333 = 0,249822
+÷ n        = 0,249822 / 150        = 0,00166548
+√          = √0,00166548           = <b>0,040810</b>     <span class="c">erro-padrão de p₁</span></div>
+  <p>O bootstrap (seções 5 e 7) não usa essa fórmula: ele mede a mesma variação sorteando itens. A conta serve de referência para o que o sorteio está medindo: o quanto a taxa mudaria com outra amostra de 150 itens.</p>
+</section>
+
+<!-- 4 ------------------------------------------------------------------ -->
+<section id="s4">
+  <div class="sh"><span class="n">4</span><h2>Duas condições nos mesmos itens</h2></div>
+  <p>Toda comparação do trabalho é entre duas condições sobre <b>os mesmos itens</b>. Cada item tem, então, um par de desfechos. Em miniatura, com seis itens atacados, em que o ataque passou nos itens 1, 2 e 4 sob o <i>prompt</i> simples e só no item 1 sob delimitação com marcação:</p>
+  <div class="items" role="img" aria-label="Seis itens; sob o prompt simples o ataque passou nos itens 1, 2 e 4; sob delimitação com marcação, só no item 1">
+    <span></span>
+    <span class="h">1</span><span class="h">2</span><span class="h">3</span><span class="h">4</span><span class="h">5</span><span class="h">6</span>
+    <span class="k">prompt simples</span>
+    <span class="cell y">sim</span><span class="cell y disc">sim</span><span class="cell n">não</span><span class="cell y disc">sim</span><span class="cell n">não</span><span class="cell n">não</span>
+    <span class="k">delim. + marc.</span>
+    <span class="cell y">sim</span><span class="cell n disc">não</span><span class="cell n">não</span><span class="cell n disc">não</span><span class="cell n">não</span><span class="cell n">não</span>
+  </div>
+  <p>O item 1 passou nas duas; os itens 3, 5 e 6, em nenhuma. Esses quatro se comportaram igual e <b>não dizem nada</b> sobre qual condição protege mais. Só os itens 2 e 4 são <b>discordantes</b>. Contar os quatro tipos de item dá a tabela que organiza todo o resto:</p>
+  <div class="tw">
+    <table class="cross">
+      <tr><th></th><th>simples: sim</th><th>simples: não</th><th>total</th></tr>
+      <tr><th>condição: sim</th><td>e = 1</td><td class="d">f = 0</td><td class="m">e+f = 1</td></tr>
+      <tr><th>condição: não</th><td class="d">g = 2</td><td>h = 3</td><td class="m">g+h = 5</td></tr>
+      <tr><th>total</th><td class="m">e+g = 3</td><td class="m">f+h = 3</td><td class="m">n = 6</td></tr>
+    </table>
+  </div>
+  <p>No exemplo que acompanha a página, com 150 itens benignos e o desfecho "tarefa cumprida":</p>
+  <div class="tw">
+    <table class="cross">
+      <tr><th></th><th>simples: cumpriu</th><th>simples: não cumpriu</th><th>total</th></tr>
+      <tr><th>condição: cumpriu</th><td>e = 70</td><td class="d">f = 3</td><td class="m">73</td></tr>
+      <tr><th>condição: não cumpriu</th><td class="d">g = 10</td><td>h = 67</td><td class="m">77</td></tr>
+      <tr><th>total</th><td class="m">80</td><td class="m">70</td><td class="m">150</td></tr>
+    </table>
+  </div>
+  <p>É daqui que vêm os 73 e os 80 da seção 3: a condição cumpriu nos 70 itens em que as duas cumpriram mais nos 3 em que só ela cumpriu; o simples, nos 70 mais os 10 em que só ele cumpriu. E a diferença das taxas depende <b>só das discordâncias</b>:</p>
+  <div class="calc">d = p₁ − p₂ = (e + f)/n − (e + g)/n = (f − g)/n
+  = (3 − 10) / 150 = −7 / 150 = <b>−0,046667</b></div>
+  <p class="note key">Os 70 itens que as duas cumpriram e os 67 que nenhuma cumpriu somem da diferença. É por isso que, adiante, a largura do intervalo depende sobretudo de quantos itens discordam, e não de quantos itens existem.</p>
+</section>
+
+<!-- 5 ------------------------------------------------------------------ -->
+<section id="s5">
+  <div class="sh"><span class="n">5</span><h2>A variância de uma diferença</h2></div>
+  <p>Um resultado básico de probabilidade: a variância da diferença de duas grandezas aleatórias X e Y é</p>
+  <div class="formula">Var(X − Y) = Var(X) + Var(Y) − 2 · Cov(X, Y)
+           = σx²      + σy²     − 2 · ρ · σx · σy</div>
+  <p>onde σ é o desvio-padrão de cada uma e ρ é a correlação entre elas, um número entre −1 e 1. Se X e Y são <b>independentes</b>, ρ = 0 e as incertezas simplesmente se somam em quadratura: √(σx² + σy²). Se estão <b>positivamente correlacionadas</b> (quando uma sobe, a outra tende a subir), o termo −2ρσxσy desconta uma parte: a variação que as duas têm em comum se cancela na diferença.</p>
+  <p>É exatamente o caso aqui. As taxas das duas condições são medidas nos mesmos itens: um item fácil tende a ser cumprido nas duas, um item difícil em nenhuma. Essa variação "do item" é comum aos dois lados e não deveria pesar na incerteza da <b>diferença</b>.</p>
+  <h3>O bootstrap pareado faz isso sozinho</h3>
+  <p>O bootstrap sorteia itens, e cada item sorteado leva consigo os seus dois desfechos. Reamostrar a diferença item a item (+1, −1 ou 0) é o mesmo que reamostrar os pares, e a correlação entra na conta sem precisar ser calculada. Um bootstrap <b>não pareado</b>, que sorteasse as duas condições separadamente, as trataria como independentes. No exemplo:</p>
+  <div class="calc">desvio-padrão por item:  condição 0,5015   simples 0,5006   diferença item a item 0,2916
+correlação implícita:    ρ = 0,83            <span class="c">137 dos 150 itens fizeram o mesmo nas duas</span>
+
+erro-padrão, não pareado = √((0,5015² + 0,5006²) / 150) = 0,0579
+erro-padrão, pareado     = 0,2916 / √150               = <b>0,0238</b>
+
+BCa, 10.000 sorteios, semente 42:
+  não pareado = [−0,153 ; +0,067]   <span class="c">cruza o zero</span>
+  pareado     = <b>[−0,100 ; −0,007]</b>   <span class="c">não cruza</span></div>
+  <p>O pareamento corta a largura de 0,220 para 0,093, menos da metade, e é o que permite afirmar que a condição custou utilidade.</p>
+</section>
+
+<!-- 6 ------------------------------------------------------------------ -->
+<section id="s6">
+  <div class="sh"><span class="n">6</span><h2>Os efeitos do 2×2</h2></div>
+  <p>O desenho do trabalho cruza dois fatores: com ou sem delimitação, com ou sem marcação. São quatro condições: S (<i>prompt</i> simples), D (delimitação), M (marcação) e DM (as duas). As figuras de diferença comparam cada uma com S, usando duas das quatro. O <b>efeito principal da delimitação</b> usa as quatro: a média das duas com delimitação (D e DM) menos a média das duas sem (S e M). Calcula-se item a item:</p>
+  <div class="formula">efeito da delimitação = [ (D + DM) − (S + M) ] / 2
+efeito da marcação    = [ (M + DM) − (S + D) ] / 2
+interação             = (DM − M) − (D − S)</div>
+  <p>Com 1 para "o ataque passou" e 0 para "não passou":</p>
+  <div class="tw">
+    <table class="tbl">
+      <tr><th>item</th><th class="r">S</th><th class="r">D</th><th class="r">M</th><th class="r">DM</th><th class="r">efeito da delimitação</th></tr>
+      <tr><td>a</td><td class="r">1</td><td class="r">0</td><td class="r">1</td><td class="r">0</td><td class="r">[(0+0) − (1+1)]/2 = −1</td></tr>
+      <tr><td>b</td><td class="r">1</td><td class="r">1</td><td class="r">1</td><td class="r">0</td><td class="r">[(1+0) − (1+1)]/2 = −0,5</td></tr>
+      <tr><td>c</td><td class="r">0</td><td class="r">0</td><td class="r">0</td><td class="r">0</td><td class="r">[(0+0) − (0+0)]/2 = 0</td></tr>
+      <tr><td>d</td><td class="r">0</td><td class="r">1</td><td class="r">0</td><td class="r">0</td><td class="r">[(1+0) − (0+0)]/2 = +0,5</td></tr>
+    </table>
+  </div>
+  <p>O efeito é a <b>média</b> dessa coluna sobre todos os itens. A interação vale zero quando o ganho da marcação é o mesmo com e sem delimitação, isto é, quando os fatores simplesmente se somam.</p>
+  <h3>Por que fica mais estreito</h3>
+  <p>Num exemplo sintético com 150 itens, os valores do efeito da delimitação por item se distribuem assim:</p>
+  <div class="tw">
+    <table class="tbl" style="max-width:520px">
+      <tr><th>valor por item</th><th class="r">itens</th><th class="r">soma</th></tr>
+      <tr><td>−1</td><td class="r">4</td><td class="r">−4,0</td></tr>
+      <tr><td>−0,5</td><td class="r">32</td><td class="r">−16,0</td></tr>
+      <tr><td>0</td><td class="r">93</td><td class="r">0,0</td></tr>
+      <tr><td>+0,5</td><td class="r">19</td><td class="r">+9,5</td></tr>
+      <tr><td>+1</td><td class="r">2</td><td class="r">+2,0</td></tr>
+      <tr><td><b>total</b></td><td class="r"><b>150</b></td><td class="r"><b>−8,5</b></td></tr>
+    </table>
+  </div>
+  <div class="calc">efeito = −8,5 / 150 = <b>−0,0567</b></div>
+  <p>Numa execução, na comparação par a par D contra S, o valor de cada item só pode ser −1, 0 ou +1 (21, 117 e 12 itens, no mesmo exemplo). No efeito principal, cada item é uma média de quatro medições, e os valores intermediários (±0,5) aparecem: o ruído de uma única execução pesa menos. O desvio-padrão por item cai de 0,4652 (par a par) para 0,3490 (efeito principal), e o intervalo encolhe na mesma proporção. No exemplo, a comparação par a par dá <span class="num">[−0,133 ; +0,013]</span>, que cruza o zero; o efeito principal dá <span class="num">[−0,110 ; 0,000]</span>, que apenas encosta nele.</p>
+</section>
+
+<!-- 7 ------------------------------------------------------------------ -->
+<section id="s7">
+  <div class="sh"><span class="n">7</span><h2>O intervalo BCa, conta por conta</h2></div>
+  <p>O intervalo do trabalho, para taxas, diferenças e efeitos, é o <b>bootstrap BCa</b> (Efron, 1987), um bootstrap com duas correções. Ele serve a qualquer média de um valor por item e não exige que esse valor seja 0 ou 1: no efeito do 2×2 o item toma cinco valores, e com as dez repetições (seção 9) os valores andam em passos de 0,1. A conta abaixo usa o exemplo sintético da seção 6, com uma execução por item e semente 42.</p>
+  <h3>Passo 1: a coleção de médias</h3>
+  <p>Sorteiam-se 150 itens com reposição, calcula-se a média, e repete-se <b>10.000 vezes</b>. O percentil simples, sem correção, cortaria 2,5% de cada ponta:</p>
+  <div class="calc">percentil 2,5  da coleção = −0,1133
+percentil 97,5 da coleção =  0,0000         <span class="c">intervalo sem correção: [−0,1133 ; 0,0000]</span></div>
+  <h3>Passo 2: a correção de viés, z₀</h3>
+  <p>Se a coleção estivesse bem centrada no valor observado (−0,0567), metade das médias sorteadas ficaria abaixo dele. Conta-se quantas ficaram. Como as médias andam em passos de 0,5/150, muitas empatam exatamente com o observado; os empates contam pela metade:</p>
+  <div class="calc">médias abaixo de −0,0567:         4793
+médias iguais a  −0,0567:          495
+fração = (4793 + 495/2) / 10000  = 0,5040
+z₀ = Φ⁻¹(0,5040)                  = <b>+0,0102</b>     <span class="c">0 seria "sem viés"</span></div>
+  <h3>Passo 3: a aceleração, a</h3>
+  <p>Mede a assimetria: o quanto a incerteza muda conforme o valor. Calcula-se pelo <b>jackknife</b>: tira-se um item de cada vez e recalcula-se a média com os 149 restantes, obtendo 150 médias θ₍ᵢ₎. Com θ̄ a média delas e dᵢ = θ̄ − θ₍ᵢ₎:</p>
+  <div class="formula">a = Σ dᵢ³ / ( 6 · ( Σ dᵢ² )^(3/2) )</div>
+  <div class="calc">médias sem um item: só 5 valores distintos, de −0,063758 a −0,050336
+θ̄ = −0,056667
+Σ dᵢ² = 8,2286 × 10⁻⁴
+Σ dᵢ³ = −1,4876 × 10⁻⁷
+a = −1,4876×10⁻⁷ / (6 × (8,2286×10⁻⁴)^1,5) = <b>−0,00105</b>     <span class="c">quase nenhuma assimetria</span></div>
+  <h3>Passo 4: os percentis corrigidos</h3>
+  <p>Em vez de cortar 2,5% e 97,5%, o BCa desloca os cortes usando z₀ e a. Com z<sub>0,025</sub> = −1,959964:</p>
+  <div class="formula">α₁ = Φ( z₀ + (z₀ + z₀,₀₂₅) / (1 − a·(z₀ + z₀,₀₂₅)) )
+α₂ = Φ( z₀ + (z₀ + z₀,₉₇₅) / (1 − a·(z₀ + z₀,₉₇₅)) )</div>
+  <div class="calc"><span class="c">corte inferior</span>
+z₀ + z₀,₀₂₅    = 0,0102 − 1,9600        = −1,9498
+1 − a·(−1,9498) = 1 − 0,002047          =  0,997953
+razão          = −1,9498 / 0,997953     = −1,9538
++ z₀           = −1,9538 + 0,0102       = −1,9437
+α₁ = Φ(−1,9437)                         =  <b>0,0260</b>    <span class="c">corta 2,60%, não 2,5%</span>
+
+<span class="c">corte superior</span>
+z₀ + z₀,₉₇₅    = 0,0102 + 1,9600        =  1,9701
+1 − a·1,9701   = 1 + 0,002069           =  1,002069
+razão          = 1,9701 / 1,002069      =  1,9660
++ z₀           = 1,9660 + 0,0102        =  1,9762
+α₂ = Φ(1,9762)                          =  <b>0,9759</b>    <span class="c">corta em 97,59%, não 97,5%</span></div>
+  <div class="calc">percentil 2,60  da coleção = −0,1100
+percentil 97,59 da coleção =  0,0000
+intervalo BCa = <b>[−0,1100 ; 0,0000]</b></div>
+  <p>A correção deslocou o limite inferior de −0,1133 para −0,1100, porque a coleção estava levemente deslocada para baixo do valor observado (z₀ positivo). É o mesmo número que a função do projeto, <code>metrics.contrastCi</code>, devolve para esses dados.</p>
+</section>
+
+<!-- 8 ------------------------------------------------------------------ -->
+<section id="s8">
+  <div class="sh"><span class="n">8</span><h2>Quando não há intervalo</h2></div>
+  <p>O bootstrap mede a incerteza pela variação que consegue sortear dentro da amostra. Quando quase todos os itens têm o mesmo valor, quase não há o que sortear, e o intervalo passa a refletir os poucos itens diferentes que a amostra contém, e não a incerteza sobre a taxa. Numa taxa de sobre-bloqueio sobre 150 itens benignos, em que cada item "diferente" foi bloqueado em uma das dez repetições (média 0,1) e os demais nunca:</p>
+  <div class="tw">
+    <table class="tbl" style="max-width:520px">
+      <tr><th class="r">itens que variam</th><th class="r">taxa</th><th class="r">intervalo BCa</th></tr>
+      <tr><td class="r">0</td><td class="r">0,0000</td><td class="r">[0,0000 ; 0,0000]</td></tr>
+      <tr><td class="r">1</td><td class="r">0,0007</td><td class="r">[0,0000 ; 0,0033]</td></tr>
+      <tr><td class="r">2</td><td class="r">0,0013</td><td class="r">[0,0000 ; 0,0047]</td></tr>
+      <tr><td class="r">3</td><td class="r">0,0020</td><td class="r">[0,0007 ; 0,0053]</td></tr>
+      <tr><td class="r">4</td><td class="r">0,0027</td><td class="r">[0,0007 ; 0,0067]</td></tr>
+      <tr><td class="r">5</td><td class="r">0,0033</td><td class="r">[0,0013 ; 0,0073]</td></tr>
+    </table>
+  </div>
+  <p>Sem nenhum item diferente, todo sorteio dá a mesma média e o intervalo tem largura zero: afirmaria que a taxa é exatamente nula a partir de nenhuma ocorrência. Com um item, afirmaria que ela não passa de 0,0033, embora outra amostra de 150 itens pudesse facilmente conter dois ou três itens como esse. Com três, o limite inferior já se afasta do zero. O intervalo acompanha a contagem observada em vez de medir o quanto ela poderia ser outra.</p>
+  <div class="box"><b>Regra do trabalho:</b> o BCa só é reportado quando ao menos <b>cinco itens</b> fogem do valor mais comum, a regra usual de exigir cinco ocorrências antes de confiar numa aproximação. Abaixo disso, a taxa sai sem intervalo: a barra da figura fica sem haste, e a coluna <code>method</code> dos CSV diz <code>sem-variacao</code>. Na bateria, isso acontece em 18 das 106 taxas absolutas (sobre-bloqueios quase nulos e utilidades iguais a 1,000) e em nenhuma diferença ou efeito.</div>
+</section>
+
+<!-- 9 ------------------------------------------------------------------ -->
+<section id="s9">
+  <div class="sh"><span class="n">9</span><h2>Dez repetições</h2></div>
+  <p>A bateria inteira roda <b>dez vezes</b>, com a mesma configuração e os mesmos itens, porque o modelo não é determinístico: a mesma entrada pode receber decisões diferentes em execuções diferentes. O desfecho de cada item passa a ser a <b>média</b> das suas repetições, ȳᵢ, a fração delas em que o ataque passou (ou a tarefa foi cumprida). A taxa da condição é a média dessas médias, igual à taxa agregada das 1.500 execuções. Diferenças e efeitos usam as médias no lugar do 0/1, e o intervalo é o mesmo BCa da seção 7.</p>
+  <h3>As duas fontes de variação</h3>
+  <p>A taxa varia porque os itens diferem entre si (há ataques que o modelo executa quase sempre e outros que nunca executa) e porque o mesmo item, executado de novo, pode ter outro desfecho. A primeira parcela é σ²<sub>b</sub>, entre itens; a segunda é σ²<sub>w</sub>, dentro do item. A média de R repetições divide só a segunda por R:</p>
+  <div class="formula">Var(ȳᵢ) = σ²_b + σ²_w / R          EP = √( (σ²_b + σ²_w / R) / n )</div>
+  <p>No ataque ao Llama-3.1-8B sob o <i>prompt</i> simples, no BIPIA, 107 dos 150 itens nunca tiveram o ataque executado, 3 o tiveram nas dez repetições e 40 ficaram no meio:</p>
+  <div class="calc">σ²_w = média das variâncias das dez repetições de cada item = 0,0474
+σ²_b = Var(ȳᵢ) − σ²_w/10                                   = 0,0607
+EP com uma execução = √((0,0607 + 0,0474)/150) = 0,0268
+EP com dez          = √((0,0607 + 0,0047)/150) = <b>0,0209</b>
+BCa sobre as 150 médias                        = <b>[0,087 ; 0,169]</b></div>
+  <p>Mesmo com uma execução o intervalo já cobre as duas fontes, porque cada desfecho observado carrega o sorteio do modelo. As repetições <b>reduzem</b> a segunda. Numa diferença, a parcela de dentro do item pesa mais (68% na combinação contra o simples, no mesmo modelo), porque a maioria dos itens se comporta igual nas duas condições e o que as separa numa execução é, em boa parte, sorteio.</p>
+  <h3>O item continua sendo a unidade</h3>
+  <p>A reamostragem sorteia itens, cada um com a sua média; a variação entre repetições viaja dentro dela. Empilhar as 1.500 execuções como se fossem independentes daria EP = √(0,1081/1500) = 0,0085 e o intervalo <span class="num">[0,106 ; 0,139]</span>, duas vezes e meia mais estreito que o correto: os 107 itens que nunca foram atacados continuariam nunca atacados em qualquer número de repetições. Esse erro tem nome, <b>pseudorreplicação</b>.</p>
+  <h3>O ganho medido</h3>
+  <div class="tw">
+    <table class="tbl">
+      <tr><th>grandeza</th><th class="r">meia-largura, uma repetição</th><th class="r">dez repetições</th><th class="r">razão</th></tr>
+      <tr><td>taxa absoluta</td><td class="r">0,050</td><td class="r">0,037</td><td class="r">0,74</td></tr>
+      <tr><td>diferença contra o simples</td><td class="r">0,037</td><td class="r">0,020</td><td class="r">0,54</td></tr>
+      <tr><td>efeito do 2×2</td><td class="r">0,035</td><td class="r">0,017</td><td class="r">0,48</td></tr>
+    </table>
+  </div>
+  <p>Das 45 diferenças contra o <i>prompt</i> simples, uma repetição isolada separava do zero, em média, 14,8 (entre 11 e 20, conforme a repetição); as dez juntas separam 32. Dos 45 efeitos do 2×2, 11,3 (entre 8 e 17) contra 22.</p>
+</section>
+
+<!-- 10 ------------------------------------------------------------------ -->
+<section id="s10">
+  <div class="sh"><span class="n">10</span><h2>Como ler as figuras</h2></div>
+  <div class="tw">
+    <table class="tbl">
+      <tr><th>o que aparece</th><th>o que quer dizer</th></tr>
+      <tr><td>barra ou ponto</td><td>a taxa, a diferença ou o efeito, como média sobre os itens das médias das dez repetições</td></tr>
+      <tr><td>haste</td><td>o intervalo de 95% por BCa sobre os itens; ausente quando menos de cinco itens variam (seção 8)</td></tr>
+      <tr><td>haste que não cruza o zero</td><td>a diferença não se explica pelo acaso, nem o da escolha dos itens nem o da variação entre execuções</td></tr>
+      <tr><td>haste que cruza o zero</td><td>efeito não detectado nesta amostra; não é o mesmo que "efeito nulo"</td></tr>
+      <tr><td>haste maior que o ponto</td><td>normal quando o ponto está perto de zero: a haste mostra o maior efeito que o dado ainda permite</td></tr>
+      <tr><td>limite inferior, na figura de utilidade</td><td>o maior custo de utilidade compatível com os dados</td></tr>
+      <tr><td>ponto, e não barra</td><td>a barra dava peso a um número que, quando a haste cruza o zero, é o menos informativo da figura</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 11 ------------------------------------------------------------------ -->
+<section id="s11">
+  <div class="sh"><span class="n">11</span><h2>Símbolos</h2></div>
+  <dl class="gl">
+    <dt>n</dt><dd>número de itens na comparação (150 no exemplo)</dd>
+    <dt>e, f, g, h</dt><dd>as quatro contagens da tabela 2×2: sim nas duas, só a condição, só o simples, nenhuma</dd>
+    <dt>p₁, p₂</dt><dd>as taxas da condição testada e do <i>prompt</i> simples</dd>
+    <dt>d</dt><dd>a diferença p₁ − p₂ = (f − g)/n</dd>
+    <dt>z</dt><dd>1,959964, o ponto da curva normal que deixa 2,5% em cada cauda</dd>
+    <dt>Φ, Φ⁻¹</dt><dd>a área acumulada da curva normal e a sua inversa</dd>
+    <dt>ρ</dt><dd>a correlação entre os desfechos das duas condições nos mesmos itens</dd>
+    <dt>R, ȳᵢ</dt><dd>o número de repetições (10) e a média do desfecho do item i sobre elas</dd>
+    <dt>σ²_b, σ²_w</dt><dd>a variância entre itens e a variância dentro do item, entre repetições</dd>
+    <dt>z₀, a</dt><dd>as correções de viés e de assimetria do BCa</dd>
+    <dt>α₁, α₂</dt><dd>os percentis corrigidos onde o BCa corta a coleção</dd>
+  </dl>
+</section>
+
+<footer>
+  Os números vêm das funções do projeto (<code>metrics.contrastCi</code>, <code>metrics.itemCi</code>), e as contas intermediárias foram refeitas à parte e conferidas contra elas. Efron, B. (1987), <i>Journal of the American Statistical Association</i> 82(397):171–185. O exemplo do 2×2 é sintético, para ilustrar o cálculo; os da seção 9 vêm da bateria, e os números reais do trabalho estão no Capítulo 4.
+</footer>
+
+</div>
+
